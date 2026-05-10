@@ -1,3 +1,1 @@
 # FoodSocialMedia
-
-Amanda
