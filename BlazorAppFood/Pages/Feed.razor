@@ -5,9 +5,9 @@
 @using Blazored.SessionStorage;
 @using BlazorAppFood.ComponentsFolder
 
-@inject IRecipeService RecipeService
 @inject IUserService UserService
 @inject IGroupService GroupService
+@inject IRecipeService RecipeService
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
@@ -37,19 +37,20 @@
                             </div>
                         </div>
 
-                        <div class="card card-custom">
-                            <div class="card-custom-header">
-                                <h5>Poderás estar interessado em...</h5>
-                            </div>
+                    <div class="card-custom-body">
+                        <ul>
 
-                            <div class="card-custom-body">
-                                <ul>
-                                    <li><a href="">recomendacao 1</a></li>
-                                    <li><a href="">recomendacao 2</a></li>
-                                    <li><a href="">recomendacao 3</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                            @foreach (var recipe in RecommendedRecipes.Take(3))
+                            {
+                                <li>
+                                    <a href="/recipepage/@recipe.Id_Recipe">
+                                        @recipe.NameRecipe
+                                    </a>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
 
                     </div>
 
@@ -108,7 +109,7 @@
                                                 <i class="bi bi-star-fill"></i> @recipe.AverageRating
                                             </div>
                                             <div class="col-4">
-                                                <i class="bi bi-bookmarks-fill"></i> @favoriteCount
+                                                <i class="bi bi-bookmarks-fill"></i> @recipe.FavoriteCount
                                             </div>
 
                                         </div>
@@ -263,21 +264,20 @@
 
     FeedMode currentFeedMode = FeedMode.Global; // default
     public List<Recipe> listPosts = new List<Recipe>();
+    public List<Recipe> RecommendedRecipes = new();
     public User user = new User();
     private List<Group> userGroups;
     public List<Tag> userTags = new();
-
-    private int favoriteCount;
-
 
 
     [Parameter] public int? TagId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("email");
-        var user = await UserService.GetUserByEmail(email);
+        var email = await sessionStorage.GetItemAsync<string>("emailAddress");
+        user = await UserService.GetUserByEmail(email);
         userGroups = await GroupService.GetUserGroups(user.Id_User);
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
 
         string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
 
@@ -285,8 +285,6 @@
         {
             user = await UserService.GetUserInfo(emailUser);
             userTags = await UserService.GetUserTags(user.Id_User);
-
-            await LoadFeed(emailUser);
         }
     }
 
@@ -304,7 +302,7 @@
         foreach (var recipe in listPosts)
         {
             recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
-            favoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
+            recipe.FavoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
         }
 
         StateHasChanged();
@@ -354,14 +352,17 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        var email = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if (string.IsNullOrEmpty(email))
+            return;
+
         if (TagId.HasValue)
-        {
             listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
-        }
         else
-        {
-            listPosts = await RecipeService.GetAllRecipes();
-        }
+            await LoadFeed(email);
+
+        StateHasChanged();
     }
 
     public async Task FilterByTag(int tagId)

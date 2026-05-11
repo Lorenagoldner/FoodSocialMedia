@@ -27,5 +27,6 @@ namespace BlazorAppFood.Data
         Task<List<Recipe>> GetRecipesByTag(int tagId);
         Task<List<Recipe>> GetAllRecipes();
         Task<List<Tag>> GetTagsForRecipe(int recipeId);
+        Task<List<Recipe>> GetMostFavoritedRecipes();
     }
 }

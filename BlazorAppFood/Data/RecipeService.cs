@@ -544,5 +544,43 @@ namespace BlazorAppFood.Data
                 return tags.ToList();
             }
         }
+
+        public async Task<List<Recipe>> GetMostFavoritedRecipes()
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = @"
+                SELECT TOP 3 
+                    r.Id_Recipe,
+                    r.Id_User,
+                    r.NameRecipe,
+                    r.Prep_Time,
+                    r.Cook_Time,
+                    CAST(r.Preparation AS NVARCHAR(MAX)) AS Preparation,
+                    r.Image,
+                    r.Video,
+                    r.AverageRating,
+                    r.PublishedDate,
+                COUNT(f.IdRecipe) AS FavoriteCount
+                FROM Recipe r
+                LEFT JOIN Favorites f ON r.Id_Recipe = f.IdRecipe
+                GROUP BY 
+                    r.Id_Recipe,
+                    r.Id_User,
+                    r.NameRecipe,
+                    r.Prep_Time,
+                    r.Cook_Time,
+                    CAST(r.Preparation AS NVARCHAR(MAX)),
+                    r.Image,
+                    r.Video,
+                    r.AverageRating,
+                    r.PublishedDate
+                ORDER BY FavoriteCount DESC";
+
+                var recipes = await conn.QueryAsync<Recipe>(query);
+
+                return recipes.ToList();
+            }
+        }
     }
 }
