@@ -1,0 +1,55 @@
+﻿@using BlazorAppFood.Data
+
+@inject IRecipeService RecipeService
+
+<div class="card">
+
+    <div class="card-recipe-header">
+
+        @if (isRated)
+        {
+            @for (int i = 1; i <= 5; i++)
+            {
+                if (i <= ratingValue)
+                {
+                    int index = i;
+                    <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star-fill"></i></span>
+                }
+                else
+                {
+                    int index = i;
+                    <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star"></i></span>
+                }
+
+            }
+        }
+        else
+        {
+            @for (int i = 1; i <= 5; i++)
+            {
+                int index = i;
+                <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star"></i></span>
+            }
+        }
+    </div>  
+
+</div>
+
+@code {
+
+    [Parameter]
+    public int idRecipe { get; set; }
+
+    [Parameter]
+    public int idUser { get; set; }
+
+    private bool isRated = false;
+    private int ratingValue;
+
+    protected async Task GiveRating(int rating)
+    {
+        isRated = true;
+        ratingValue = rating;
+        await RecipeService.RatingRecipe(idRecipe, idUser, rating);
+    }
+}

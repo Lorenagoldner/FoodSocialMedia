@@ -1,0 +1,123 @@
+﻿@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@inject IRegisterService RegisterService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@*@page "/register"*@
+
+@*<h3>Register</h3>
+
+    <EditForm Model="@user" OnValidSubmit="@MakeNewRegist">
+
+            <p>
+                <label>
+                    Username:
+                    <InputText @bind-Value="user.Username" />
+                </label>
+            </p>
+            <p>
+                <label>
+                    Email:
+                    <InputText @bind-Value="user.Email" />
+                </label>
+            </p>
+            <p>
+                <label>
+                    Password:
+                    <InputText @bind-Value="user.Password" />
+                </label>
+            </p>
+            <input type="submit" value="Register" />
+        </EditForm>*@
+
+<div style="display: @display" class="modal index-modal index-modal-login" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Registo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseModal"></button>
+            </div>
+
+            <EditForm Model="@user" OnValidSubmit="@MakeNewRegist">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Username</label>
+                        <InputText @bind-Value="user.Username" class="form-control" id="exampleInputEmail1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Endereço de Email</label>
+                        <InputText @bind-Value="user.Email" class="form-control" id="exampleInputEmail1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label">Password</label>
+                        <InputText @bind-Value="user.Password" type="password" class="form-control" id="exampleInputPassword1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputPassword1" class="form-label"> Repetir Password</label>
+                        <input type="password" class="form-control" id="exampleInputPassword1">
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark">Registe-se</button>
+                    <span>Já está registado?</span>
+
+                </div>
+
+            </EditForm>
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    public User user = new User();
+    public bool showErrorRegister = false;
+
+    public async Task MakeNewRegist()
+    {
+        // 1. Registar o utilizador
+        bool success = await RegisterService.CreateRegist(user.Username, user.Email, user.Password);
+
+        if (success)
+        {
+            // 2. Login automático
+            bool loginSuccess = await RegisterService.LoginRegist(user.Email, user.Password);
+
+            if (loginSuccess)
+            {
+                // 3. Marcar como autenticado (igual ao login)
+                ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(user.Email);
+
+                await sessionStorage.SetItemAsync("emailAddress", user.Email);
+
+                // 4. Redirecionar
+                NavigationManager.NavigateTo("/welcome");
+            }
+            else
+            {
+                showErrorRegister = true;
+            }
+        }
+        else
+        {
+            showErrorRegister = true;
+        }
+    }
+
+
+    [Parameter]
+    public string display { get; set; }
+
+    void CloseModal()
+    {
+        display = "none";
+    }
+
+}

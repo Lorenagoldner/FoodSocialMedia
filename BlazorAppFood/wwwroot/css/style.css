@@ -1,0 +1,749 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css");
+
+body {
+    background-color: #F8F8F8;
+    font-family: 'Raleway', sans-serif;
+    color: #313131;
+}
+
+a {
+    text-decoration: none;
+    color: #8f8f8f;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+/* Navbar */
+
+.navbar {
+    background-color: #fff;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.navbar-brand-logo {
+    font-size: 2em;
+    color: #313131;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+}
+
+.circle-user {
+    border-radius: 50%;
+    border: 1px solid #B4B4B4;
+    padding: 5px;
+    display: inline-block;
+}
+
+.search-nav {
+    border-radius: 40px;
+    background-color: #f1f1f1;
+    border: none;
+    width: 500px;
+    padding: 10px 25px;
+}
+
+    .search-nav:focus {
+        border-radius: 40px;
+        width: 500px;
+    }
+
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #cfcfcf;
+    opacity: 1; /* Firefox */
+}
+
+/* Nav Bottom Menu*/
+
+.menu-icon{
+    opacity: 0.5;
+}
+
+.menu-icon:hover {
+    opacity: 1;
+}
+
+.card-menu {
+    padding: 15px;
+    border: none;
+    display: inline;
+}
+.nav-link {
+        display: inline;
+    }
+
+/*#card-create-recipe {
+    background-color: #313131;
+    color: #e2e2e2;
+}*/
+
+#card-create-recipe {
+    border: 2px solid #313131;
+    color: #313131;
+}
+
+    #card-create-recipe:hover {
+        color: #E32D2D;
+        background-color: #fff;
+        border: 1px solid #E32D2D;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+    }
+
+/* Buttons */
+
+.btn-primary, .btn-primary:focus, .btn-primary:active {
+    background-color: #E32D2D;
+    border: 1px solid #d32929;
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+    .btn-primary:hover {
+        background-color: #ffffff;
+        border: 1px solid #d32929;
+        color: #E32D2D;
+        padding-left: 40px;
+        padding-right: 40px;
+        font-weight: bold;
+    }
+
+/* Cards */
+
+#card-create-recipe {
+    border: 2px solid #e2e2e2;
+}
+
+.card-custom h5 {
+    display: inline-block;
+}
+
+.card-recipe-body img {
+    margin: 25px auto;
+    height: 200px;
+    border-radius: 8px;
+}
+
+/*.card-recipe:hover {
+    background-color: #313131;
+    color: #e2e2e2;
+}*/
+
+/*.card-recipe:hover {
+    background-color: #f5f5f5;
+}*/
+
+
+
+.form-recipe, .card-recipe, .card-custom {
+    margin: 30px 0px 0px 0px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+    .card-custom:hover {
+        background-color: #f5f5f5;
+    }
+
+
+    .card-custom li {
+        font-size: 14px;
+        color: #5c5c5c;
+        margin: 4px;
+    }
+
+
+/* Cards Headers */
+
+.form-recipe-header, .card-recipe-header {
+    padding: 25px;
+    padding-bottom: 15px;
+}
+
+.form-recipe-header {
+    margin-bottom: 15px;
+}
+
+.card-custom-header {
+    padding: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.card-custom-body {
+    padding-left: 10px;
+}
+
+.form-recipe-body {
+    padding: 0px 25px;
+}
+
+.card button {
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
+.card h1 {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 28px;
+}
+
+#a:hover + #b {
+    background: #ccc;
+    visibility: hidden;
+}
+
+
+.form-recipe img {
+    width: 35px;
+    height: 35px;
+}
+
+.form-recipe label {
+    font-family: Raleway;
+    font-size: 18px;
+    font-weight: 700;
+    margin-left: 5px;
+    margin-bottom: 15px;
+}
+
+/*.form-recipe input, .form-recipe textarea {
+    margin-bottom: 25px;
+    border: 1px solid #BFBFBF;
+}*/
+
+.form-recipe input, .form-recipe textarea {
+    margin-bottom: 25px;
+    margin-top: 5px;
+    border: none;
+    background-color: #e7e7e7;
+}
+
+
+.form-control:focus {
+    border-color: #363636;
+    box-shadow: 0 0 0 0.2rem rgba(90, 90, 90, 0.25);
+}
+
+/*.form-control:focus {
+    border-color: #cecece;
+    box-shadow: 0 0 0 0.2rem rgba(90, 90, 90, 0.25);
+} */
+
+
+
+.form-ingredients button {
+    border:none;
+    padding:0px;
+    margin:0px;
+    background: none;
+}
+
+.form-ingredients button:hover {
+   background: none;
+   color: #313131;
+}
+
+
+.form-ingredients-content {
+    padding: 0px;
+}
+
+    .ingredient-label {
+        border: 1px solid #313131;
+        border-radius: 17.5px;
+        padding: 5px 15px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+.ingredients-text {
+    column-count: 2;
+}
+
+/* Footer */
+
+footer {
+    background-color: #fff;
+    color: #313131;
+    border-top: 2px solid #F8F8F8;
+    padding: 50px;
+    font-weight: bold;
+}
+
+    footer span {
+        /*color: #B4B4B4;*/
+        color: #8f8f8f;
+        font-weight: normal;
+    }
+
+/* Recipe Page */
+
+.card-recipe-info {
+    background: #1D1D1D;
+    box-shadow: 0px -4px 5px rgba(0, 0, 0, 0.25);
+    border-radius: 11px;
+    width: 80%;
+    height: 74px;
+    left: 202px;
+    top: 532px;
+    text-align: center;
+    color: #F7F7F7
+}
+
+    .card-recipe-info h6 {
+        font-weight: 600;
+        font-size: 21px;
+    }
+
+/* Icons */
+
+/*.bi-house, .bi-plus-square, .bi-bookmark {
+    font-size: 1.3rem;
+    margin: 0px 40px;
+    padding: 0px;
+    color: #363636;
+}
+
+    .bi-house:hover, .bi-plus-square:hover, .bi-bookmark:hover {
+        color: #E32D2D;
+    }*/
+
+.menu-icon {
+    margin: 0px 10px;
+    display: inline;
+}
+
+.bi-plus-circle-fill, .bi-plus-square-fill, .bi-plus-circle-dotted {
+    color: #313131;
+    font-size: 2rem;
+}
+
+.bi-plus-circle {
+    font-size: 1.2rem;
+}
+
+/* Profile Card*/
+
+.card-profile {
+    margin: 30px 0px 0px 0px;
+    padding: 50px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.card-profile-description {
+    margin-top: 25px;
+    padding: 25px;
+}
+
+.card-profile-stats {
+    background-color: #F0F0F0;
+    padding: 10px;
+    margin: 30px 0px;
+    border-radius: 10px;
+}
+
+/*Index Page*/
+
+
+.index-right-panel img {
+    padding-top: 25px;
+}
+
+.navbar {
+    background-color: #fff;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.navbar-brand {
+    font-size: 2em;
+    color: #313131;
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+}
+
+.index-showcase {
+    height: 80vh;
+}
+
+.index-showcase .btn{
+    padding: 5px 20px;
+}
+
+.modal {
+    /*position: absolute;*/
+    top: 25px;
+    right: 100px;
+    bottom: 0;
+    left: 25%;
+    z-index: 10040;
+    overflow: auto;
+    overflow-y: auto;
+ }
+
+ /*.modal-dialog {
+    top: 10%;
+ }*/
+
+ .form-control {
+    background-color: #e4e4e4;
+    border: none;
+}
+
+ #myModal {
+    top:5%;
+    right:50%;
+    outline: none;
+    overflow:hidden;
+    }
+
+ .modal-content {
+    width: 300px;
+    border-radius: 15px;
+    padding: 20px 15px;
+    background-color: rgba(255, 255, 255, 1);
+    /*box-shadow: 5px 4px 10px 0px rgba(0, 0, 0, 0.25);*/
+    box-shadow: 0px 4px 10px 2px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(19px);
+ }
+
+.modal span {
+    font-size: 14px;
+    color: #979797;
+    margin-left: 5px;
+}
+
+/*.index-modal {
+    position: absolute;
+    width: 360px;
+    left: 830px;
+    top: 50px;
+
+    background-color: #fff;
+    box-shadow: 0px 4px 10px 2px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(19px);
+
+    padding: 0px 15px;
+    border-radius: 20px;
+}
+
+.index-modal-login {
+    max-height: 425px;
+}
+
+.index-modal-register {
+    max-height: 475px;
+}
+
+.modal-backdrop { opacity: 0 !important; }
+
+*/
+
+.index-modal div {
+    border: transparent;
+}
+
+
+/*.modal-backdrop {background: none;
+    backdrop-filter: blur(19px);
+}*/
+.modal-backdrop {background: none;}
+.modal{background: none;}
+
+.index-left-panel a {
+    font-weight: normal;
+    font-weight: bold;
+    font-size: 48px;
+}
+
+.index-left-panel h4 {
+    font-weight: normal;
+    font-size: 30px;   
+    width: 400px;
+}
+
+.index-img-blur {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(19px);
+    /* Note: backdrop-filter has minimal browser support */
+
+    border-radius: 40px;
+}
+
+.index-footer {
+    margin-top: 50px;
+}
+
+.index-footer h6 {
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.175em;
+    text-transform: uppercase;
+}
+
+.index-footer span {
+    font-size: 14px;
+    color: #BEBEBE;
+}
+
+
+
+.imagem-receita {
+    position: absolute;
+    width: 708.61px;
+    height: 424.13px;
+    left: 111.34px;
+    top: 307px;
+    background: url(Mousse-de-chocolate-com-avela.jpg);
+}
+
+.rectangulo {
+    position: absolute;
+    width: 528px;
+    height: 74px;
+    left: 202px;
+    top: 532px;
+    background: #CC1A1A;
+    box-shadow: 0px -4px 5px rgba(0, 0, 0, 0.25);
+    border-radius: 11px;
+}
+
+.favoritos {
+    position: absolute;
+    width: 105px;
+    height: 64px;
+    left: 242px;
+    top: 539px;
+    font-family: Raleway;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 29px;
+    text-align: center;
+    color: #F7F7F7;
+}
+
+.Avalicao {
+    position: absolute;
+    width: 234px;
+    height: 64px;
+    left: 347px;
+    top: 539px;
+    font-family: Raleway;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 29px;
+    text-align: center;
+    color: #F7F7F7;
+}
+
+.seguidores {
+    position: absolute;
+    width: 112px;
+    height: 64px;
+    left: 582px
+    top: 539px;
+    font-family: Raleway;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 29px;
+    text-align: center;
+    color: #F7F7F7;
+}
+
+.rectangulo-info {
+    position: absolute;
+    width: 675px;
+    height: 211px;
+    left: 128px;
+    top: 644px;
+    background: #FFFFFF;
+    border: 1px solid #B0B0B0;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.rectangulo-texto {
+    position: absolute;
+    width: 329px;
+    height: 157px;
+    left: 415px;
+    top: 909px;
+    font-family: Raleway;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 22px;
+    line-height: 26px;
+    color: #000000;
+}
+
+.rectangulo-pessoal {
+    position: absolute;
+    width: 491px;
+    height: 663px;
+    left: 832px;
+    top: 308px;
+    border: 1px solid #DADADA;
+    box-sizing: border-box;
+    border-radius: 14px;
+}
+
+/* Nav */
+
+.bar1, .bar2, .bar3 {
+    width: 35px;
+    height: 5px;
+    background-color: #333;
+    margin: 6px 0;
+    transition: 0.4s;
+}
+
+.dropdown:hover .bar1 {
+    transform: rotate(360deg) translateY(10px);
+}
+
+.dropdown:hover .bar2 {
+    opacity: 0;
+    -webkit-transform: translate(0px, 200px);
+    transform: translateY(100px);
+}
+
+.dropdown:hover .bar3 {
+    -webkit-transform: translate(0px, 200px);
+    transform: translateY(100px);
+    opacity: 0;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    /* background-color: #f1f1f1; */
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 6px;
+}
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+        color: #313131;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;   
+    }
+
+        /* Change color of dropdown links on hover */
+        .dropdown-content a:hover {
+            background-color: #313131;
+            color: #fff;
+        }
+
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown i {
+    padding: 0px;
+    margin: 0px;
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.a {
+    margin: 25px;
+}
+
+.img-recipe-card {
+    width: 100%;
+    /* height: 40vh; */
+    height: 280px;
+    object-fit: cover;
+}
+
+.cursor-pointer:hover {
+    cursor: pointer
+}
+
+.card-recipe-panel-left img, recipe-card-comments img{
+    width: 55px;
+    height: 55px;
+}
+
+.recipe-card-comments i{
+    font-size: 2em;
+}
+
+.comments-area {
+    background-color: #e2e2e2;
+    padding: 15px 25px;
+}
+
+
+.card-recipe-panel-right > div {
+    margin: 0px 0px;
+    border: 1px solid #e2e2e2;
+    padding: 30px 10px;
+}
+
+.recipe-card-comments input {
+    background-color: #fff;
+}
+
+.recipe-card-comments .form-control:focus {
+    border: none;
+    outline: none;
+    padding-bottom:2px;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+.recipe-card-comments .form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #313131;
+    opacity: 1; /* Firefox */
+}
+
+.card-recipe-user-info {
+    border-radius: 5px 5px 0px 0px;
+}
+
+.recipe-card-comments {
+    border-radius: 0px 0px 5px 5px;
+}
+
+/*Profile page*/
+
+
+/*Feed*/
+.icon-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+    .icon-button:focus {
+        outline: none;
+    }
+

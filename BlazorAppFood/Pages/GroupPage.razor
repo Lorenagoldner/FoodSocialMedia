@@ -1,0 +1,498 @@
+﻿@page "/grouppage"
+@using BlazorAppFood.Models
+@using BlazorAppFood.Data
+@inject IGroupService GroupService
+@inject IUserService UserService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavigationManager
+
+<h3 class="text-center my-4">Grupos</h3>
+<div class="text-center my-4">
+<button class="btn btn-primary my-2" @onclick="ToggleCreateGroupForm">
+    <i class="bi bi-plus-circle me-2"></i> Criar Novo Grupo
+</button>
+<button class="btn btn-primary my-2" @onclick=@(() => NavigationManager.NavigateTo("/searchgroup"))>
+    <i class="bi bi-plus-circle me-2"></i> Procurar Grupos
+</button>
+</div>
+@if (showCreateGroupForm)
+{
+    <div class="card p-3 my-2 shadow-lg rounded bg-light">
+        <h5 class="fw-bold">Criar um Novo Grupo</h5>
+
+        <div class="form-group">
+            <label>Group Name *</label>
+            <input class="form-control" @bind="groupNameInput" placeholder="Enter group name" />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Tags (comma-separated)</label>
+            <input class="form-control" @bind="groupTagsInput" placeholder="e.g., Italian, Baking" />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Convidar Membro (emails, comma-separated)</label>
+            <input class="form-control" @bind="inviteEmailsInput" placeholder="e.g., friend@email.com" />
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-success" @onclick="CreateGroup">Create</button>
+            <button class="btn btn-secondary ms-2" @onclick="ToggleCreateGroupForm">Cancel</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <p class="text-danger mt-2">@ErrorMessage</p>
+        }
+
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <p class="text-success mt-2">@SuccessMessage</p>
+        }
+    </div>
+
+}
+
+<h5 class="mt-4">Os Meus Grupos</h5>
+
+@if (userGroups is not null && userGroups.Any())
+{
+    <ul class="list-group">
+        @foreach (var group in userGroups)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm mb-3 rounded">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-house-door-fill me-3" style="font-size: 1.5rem;"></i>
+                    <span class="fw-semibold" style="cursor: pointer; color: black;" onmouseover="this.style.color='blue';" onmouseout="this.style.color='black';" @onclick=@(() => NavigationManager.NavigateTo("/grouppage/" + group.Id_Group))>@group.Name</span>
+                </div>
+
+                <div class="d-flex ms-auto">
+                    <div>
+                    <button class="btn btn-sm btn-secondary me-2" @onclick="() => AddUserToGroup(group.Id_Group)">
+                        <i class="bi bi-person-plus me-2"></i> Adicionar Usuário
+                    </button>
+                    </div>
+                    <div>
+                    @if (isAdminByGroup.ContainsKey(group.Id_Group) && isAdminByGroup[group.Id_Group])
+                    {
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteGroup(group.Id_Group)">
+                            <i class="bi bi-trash me-2"></i> Excluir
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-outline-warning" @onclick="() => LeaveGroup(group.Id_Group)">
+                            <i class="bi bi-person-dash me-2"></i> Sair
+                        </button>
+                    }
+                    </div>
+                </div>
+
+
+                <!-- Display members -->
+                @if (groupMembers != null && groupMembers.Any())
+                {
+                    <div class="mt-2">
+                        <div class="card mt-2">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <strong></strong>
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        @onclick="() => ToggleMemberList(group.Id_Group)">
+                                    @(showMembers.ContainsKey(group.Id_Group) && showMembers[group.Id_Group] ? "Esconder" : "Membros do Grupo")
+                                </button>
+                            </div>
+
+                            @if (showMembers.ContainsKey(group.Id_Group) && showMembers[group.Id_Group])
+                            {
+                                <ul class="list-group">
+                                    @if (groupMembers.ContainsKey(group.Id_Group) && isAdminByGroup.ContainsKey(group.Id_Group))
+                                    {
+                                        @foreach (var member in groupMembers[group.Id_Group])
+                                        {
+                                            <li class="list-group-item d-flex align-items-center">
+                                                <img src="@member.UserPhoto" class="rounded-circle" width="40" height="40"
+                                                     style="cursor: pointer;"
+                                                     @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + member.Id_User))" />
+
+                                                <strong style="cursor: pointer; color: black;"
+                                                        onmouseover="this.style.color='blue';"
+                                                        onmouseout="this.style.color='black';"
+                                                        @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + member.Id_User))">
+                                                    @member.Username
+                                                </strong>
+
+                                                @if (member.IsAdmin)
+                                                {
+                                                    <span class="badge bg-success ms-2">Admin</span>
+                                                }
+
+                                                @if (isAdminByGroup[group.Id_Group] && member.Id_User != currentUserId)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-primary ms-auto"
+                                                            @onclick="() => ConfirmToggleAdmin(member.Id_User, group.Id_Group, member.IsAdmin)">
+                                                        @(member.IsAdmin ? "Remove Admin" : "Make Admin")
+                                                    </button>
+                                                }
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted ms-3 mt-2">Carregar Membros...</p>
+                                    }
+                                </ul>
+                            }
+                        </div>
+
+                    </div>
+
+                }
+                else
+                {
+                    <p>Não tem Membros.</p>
+                }
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="alert alert-info">Ainda não criou nenhum grupo.</p>
+}
+
+@if (showModal)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg rounded">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar Usuário ao Grupo</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <input class="form-control" placeholder="Email do Usuário" @bind="emailToAdd" />
+                    <button class="btn btn-primary mt-2" @onclick="PreviewUserByEmail">Verificar</button>
+
+                    @if (userPreview != null)
+                    {
+                        <div class="mt-3">
+                            <img src="@userPreview.UserPhoto" alt="@userPreview.Username" class="rounded-circle" width="50" height="50" />
+                            <p>@userPreview.Username</p>
+                            <button class="btn btn-success" @onclick="ConfirmAddUser">Confirmar</button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    {
+                        <p class="text-danger mt-2">@ErrorMessage</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showConfirmAdminChange)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content shadow-lg rounded">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Ação</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="CancelAdminChange"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza de que deseja @(pendingMakeAdmin ? "promover" : "rebaixar") este usuário?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelAdminChange">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="ConfirmAdminChange">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private bool showCreateGroupForm = false;
+    private string groupNameInput = "";
+    private string groupTagsInput = "";
+    private string inviteEmailsInput = "";
+    private bool showModal = false;
+    private string emailToAdd;
+    private int groupIdToAddUser;
+    private string newGroupName;
+    private List<Group> userGroups = new();
+    private List<Recipe> groupRecipes;
+    private Dictionary<int, List<GroupMember>> groupMembers = new();
+    private string ErrorMessage = "";
+    private string SuccessMessage = "";
+    private User userPreview;
+
+    private bool showConfirmAdminChange = false;
+    private int pendingUserId;
+    private int pendingGroupId;
+    private bool pendingMakeAdmin;
+
+    private int currentUserId;
+    private Dictionary<int, bool> showMembers = new();
+
+    private void ToggleMemberList(int groupId)
+    {
+        if (showMembers.ContainsKey(groupId))
+            showMembers[groupId] = !showMembers[groupId];
+        else
+            showMembers[groupId] = true;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("email");
+
+        if (string.IsNullOrEmpty(email))
+        {
+            ErrorMessage = "User not logged in or session expired.";
+            return;
+        }
+
+        var user = await UserService.GetUserByEmail(email);
+
+        if (user == null)
+        {
+            ErrorMessage = $"No user found for email: {email}";
+            return;
+        }
+
+        currentUserId = user.Id_User;
+
+        await LoadGroups();
+
+        foreach (var group in userGroups)
+        {
+            await LoadGroupMembers(group.Id_Group);
+        }
+
+        await LoadGroupRecipes();
+
+        await LoadAdminsForGroups();
+        await LoadAdminStatus();
+    }
+
+    private Dictionary<int, List<int>> adminsByGroup = new();
+
+    private async Task LoadAdminsForGroups()
+    {
+        foreach (var group in userGroups)
+        {
+            var members = await GroupService.GetGroupMembers(group.Id_Group);
+            var admins = members.Where(u => u.IsAdmin).Select(u => u.Id_User).ToList();
+            adminsByGroup[group.Id_Group] = admins;
+        }
+    }
+
+    private Dictionary<int, bool> isAdminByGroup = new();
+
+    private async Task LoadAdminStatus()
+    {
+        foreach (var group in userGroups)
+        {
+            bool isAdmin = await GroupService.IsUserAdmin(currentUserId, group.Id_Group);
+            isAdminByGroup[group.Id_Group] = isAdmin;
+        }
+    }
+
+    private async Task LoadGroups()
+    {
+        userGroups = await GroupService.GetUserGroups(currentUserId);
+
+        foreach (var group in userGroups)
+        {
+            if (!groupMembers.ContainsKey(group.Id_Group))
+            {
+                groupMembers[group.Id_Group] = new List<GroupMember>(); // Prevent missing key error
+            }
+
+            await LoadGroupMembers(group.Id_Group);
+        }
+    }
+
+    private async Task LoadGroupMembers(int groupId)
+    {
+        var members = await GroupService.GetGroupMembers(groupId);
+        groupMembers[groupId] = members; // Store members in a dictionary with groupId as the key
+    }
+
+    private async Task LoadGroupRecipes()
+    {
+        groupRecipes = await GroupService.GetGroupRecipes(currentUserId);
+    }
+
+    private void ToggleCreateGroupForm()
+    {
+        showCreateGroupForm = !showCreateGroupForm;
+        ErrorMessage = "";
+        SuccessMessage = "";
+    }
+
+    private async Task CreateGroup()
+    {
+        if (string.IsNullOrWhiteSpace(groupNameInput))
+        {
+            ErrorMessage = "Group name is required.";
+            return;
+        }
+
+        try
+        {
+            int newGroupId = await GroupService.CreateGroup(groupNameInput, currentUserId);
+
+            // Optional: Invite users
+            if (!string.IsNullOrWhiteSpace(inviteEmailsInput))
+            {
+                var emails = inviteEmailsInput.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var email in emails)
+                {
+                    var user = await UserService.GetUserByEmail(email);
+                    if (user != null)
+                    {
+                        // Check if user is already in the group
+                        bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, newGroupId);
+                        if (!isUserInGroup)
+                        {
+                            await GroupService.AddUserToGroup(user.Id_User, newGroupId);
+                        }
+                        else
+                        {
+                            ErrorMessage += $"User {user.Username} is already in the group.\n";
+                        }
+                    }
+                    else
+                    {
+                        ErrorMessage += $"User not found: {email}\n";
+                    }
+                }
+            }
+
+            SuccessMessage = $"Group '{groupNameInput}' created successfully!";
+            groupNameInput = "";
+            groupTagsInput = "";
+            inviteEmailsInput = "";
+            showCreateGroupForm = false;
+
+            await LoadGroups();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error creating group: {ex.Message}";
+        }
+    }
+
+    private void AddUserToGroup(int groupId)
+    {
+        groupIdToAddUser = groupId;
+        emailToAdd = "";
+        showModal = true;
+        LoadGroupMembers(groupId); // Load members when the user is adding
+    }
+
+    private async Task DeleteGroup(int groupId)
+    {
+        try
+        {
+            await GroupService.DeleteGroup(groupId, currentUserId);
+            await LoadGroups();
+            await LoadAdminStatus();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to delete group: {ex.Message}";
+        }
+    }
+
+    private async Task LeaveGroup(int groupId)
+    {
+        await GroupService.RemoveUserFromGroup(currentUserId, groupId);
+        await LoadGroups();
+        await LoadGroupMembers(groupId);
+        await LoadAdminStatus();
+    }
+
+    private async Task ToggleAdminStatus(int userId, int groupId, bool makeAdmin)
+    {
+        await GroupService.SetUserAdminStatus(userId, groupId, makeAdmin);
+        await LoadGroupMembers(groupId);
+    }
+
+    private async Task PreviewUserByEmail()
+    {
+        userPreview = await UserService.GetUserByEmail(emailToAdd);
+        if (userPreview == null)
+        {
+            ErrorMessage = $"No user found with email: {emailToAdd}";
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        emailToAdd = "";
+        groupIdToAddUser = 0;
+    }
+
+    private async Task ConfirmAddUser()
+    {
+        try
+        {
+            // Prevent duplicate user
+            var user = await UserService.GetUserByEmail(emailToAdd);
+            if (user != null)
+            {
+                bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, groupIdToAddUser);
+                if (isUserInGroup)
+                {
+                    ErrorMessage = $"User {user.Username} is already in the group.";
+                }
+                else
+                {
+                    await GroupService.AddUserToGroup(user.Id_User, groupIdToAddUser);
+                    await LoadGroups();
+                    CloseModal();
+                }
+            }
+            else
+            {
+                ErrorMessage = $"User with email {emailToAdd} not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to add user: {ex.Message}";
+        }
+    }
+
+    private void ConfirmToggleAdmin(int userId, int groupId, bool isCurrentlyAdmin)
+    {
+        pendingUserId = userId;
+        pendingGroupId = groupId;
+        pendingMakeAdmin = !isCurrentlyAdmin;
+        showConfirmAdminChange = true;
+    }
+
+    private void CancelAdminChange()
+    {
+        showConfirmAdminChange = false;
+    }
+
+    private async Task ConfirmAdminChange()
+    {
+        await GroupService.SetUserAdminStatus(pendingUserId, pendingGroupId, pendingMakeAdmin);
+        await LoadGroupMembers(pendingGroupId);
+        showConfirmAdminChange = false;
+    }
+}

@@ -1,0 +1,106 @@
+﻿@page "/grouppage/{GroupId:int}"
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@using Blazored.SessionStorage
+@inject IGroupService GroupService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject ISessionStorageService sessionStorage
+
+<div class="d-flex justify-content-center mt-4">
+    <h4>Detalhes do Grupo</h4>
+</div>
+
+@if (group != null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="card mb-3" style="width: 100%; max-width: 600px;">
+            <div class="card-header text-center">
+                <h5>@group.Name</h5>
+            </div>
+        
+        <div class="card-body">
+            <p>@group.Description</p> <!-- Group Description, add this to your Group model if needed -->
+            <h6>Membros</h6>
+            <ul class="list-group">
+                @foreach (var member in groupMembers)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <img src="@member.UserPhoto" class="rounded-circle" width="40" height="40" />
+                        @member.Username
+                        @if (member.IsAdmin)
+                        {
+                            <span class="badge bg-success ms-1">Admin</span>
+                        }
+                    </li>
+                }
+            </ul>
+
+            @if (isUserAdmin)
+            {
+                <div class="mt-3">
+                    <button class="btn btn-danger" @onclick="DeleteGroup">Eliminar Grupo</button>
+                </div>
+            }
+
+            <div class="mt-3">
+                <button class="btn btn-secondary" @onclick="LeaveGroup">Sair do Grupo</button>
+            </div>
+        </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter] public int GroupId { get; set; }
+    private Group group;
+    private List<GroupMember> groupMembers = new List<GroupMember>();
+    private bool isUserAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("email");
+        var user = await UserService.GetUserByEmail(email);
+
+        // Get group details
+        group = await GroupService.GetGroupById(GroupId); // Now this method exists
+
+        // Get group members
+        groupMembers = await GroupService.GetGroupMembers(GroupId);
+
+        // Check if the current user is an admin
+        isUserAdmin = groupMembers.Any(m => m.Id_User == user.Id_User && m.IsAdmin);
+    }
+
+    private async Task LeaveGroup()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("email");
+        var user = await UserService.GetUserByEmail(email);
+
+        bool success = await GroupService.RemoveUserFromGroup(user.Id_User, GroupId);
+        if (success)
+        {
+            NavigationManager.NavigateTo("/feed"); // Redirect to feed page after leaving
+        }
+    }
+
+    private async Task DeleteGroup()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("email");
+        var user = await UserService.GetUserByEmail(email);
+
+        bool isAdmin = await GroupService.IsUserAdmin(user.Id_User, GroupId);
+        if (!isAdmin)
+        {
+            // Optional: You can show a message or handle an error here
+            return;
+        }
+
+        await GroupService.DeleteGroup(GroupId, user.Id_User); // Delete group
+        NavigationManager.NavigateTo("/feed"); // Redirect to feed page after deletion
+    }
+}

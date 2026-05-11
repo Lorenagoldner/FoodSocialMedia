@@ -1,0 +1,144 @@
+﻿@page "/searchgroup"
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@using Blazored.SessionStorage
+@using System.Security.Claims
+
+@inject ISessionStorageService sessionStorage
+@inject IUserService UserService
+@inject IGroupService GroupService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+
+<h3 class="text-center mb-4">Procurar Grupos</h3>
+
+<div class="container">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <input type="text" class="form-control form-control-lg" placeholder="Pesquisar por nome de grupo..." @bind="searchQuery" @oninput="SearchGroups" />
+
+        </div>
+    </div>
+
+    @if (groups == null)
+    {
+        <div class="alert alert-info" role="alert">
+            A carregar grupos...
+        </div>
+    }
+    else if (groups.Count == 0)
+    {
+        <div class="alert alert-warning" role="alert">
+            Nenhum grupo encontrado.
+        </div>
+    }
+    else
+    {
+        <ul class="list-group">
+            @foreach (var group in groups)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center shadow-sm mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-house-door-fill me-3" style="font-size: 1.5rem;"></i>
+                        <span class="fs-5 fw-bold" style="cursor: pointer; color: black;" onmouseover="this.style.color='blue';" onmouseout="this.style.color='black';" @onclick=@(() => NavigationManager.NavigateTo("/grouppage/" + group.Id_Group))>@group.Name</span>
+                    </div>
+                    
+                    @if (!IsUserInGroup(group.Id_Group))
+                    {
+                        <button class="btn btn-primary" @onclick="() => JoinGroup(group.Id_Group)">
+                            <i class="bi bi-person-plus me-2"></i> Entrar
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-warning" @onclick="() => LeaveGroup(group.Id_Group)">
+                            <i class="bi bi-person-dash me-2"></i> Sair
+                        </button>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private List<Group> groups;
+    private string searchQuery = string.Empty;
+    private int userId;
+    private bool isLoading = false;
+    private HashSet<int> userGroupIds = new();
+    private bool IsUserInGroup(int groupId) => userGroupIds.Contains(groupId);
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var email = user.FindFirstValue(ClaimTypes.Name); 
+            if (!string.IsNullOrEmpty(email))
+            {
+                var currentUser = await UserService.GetUserByEmail(email);
+                if (currentUser != null)
+                {
+                    userId = currentUser.Id_User;
+
+                    var joinedGroups = await GroupService.GetUserGroups(userId);
+                    userGroupIds = joinedGroups.Select(g => g.Id_Group).ToHashSet();
+
+                    groups = await GroupService.GetAllGroups();
+                    return;
+                }
+            }
+        }
+
+        NavigationManager.NavigateTo("/login");
+    }
+
+    private async Task LeaveGroup(int groupId)
+    {
+        await GroupService.RemoveUserFromGroup(userId, groupId);
+        await SearchGroups();
+
+        var joinedGroups = await GroupService.GetUserGroups(userId);
+        userGroupIds = joinedGroups.Select(g => g.Id_Group).ToHashSet();
+    }
+
+
+
+    private async Task LoadGroups()
+    {
+        groups = await GroupService.GetAllGroups();
+    }
+
+    private async Task SearchGroups()
+    {
+        isLoading = true;
+
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            await LoadGroups();
+        }
+        else
+        {
+            groups = await GroupService.SearchGroupsByNameStartingWith(searchQuery);
+        }
+
+        isLoading = false;
+    }
+
+
+    
+
+    private async Task JoinGroup(int groupId)
+    {
+        await GroupService.AddUserToGroup(userId, groupId);
+        await SearchGroups();
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+
+    }
+}

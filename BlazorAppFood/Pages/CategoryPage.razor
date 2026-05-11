@@ -1,0 +1,165 @@
+﻿@page "/categorypage"
+@page "/categorypage/{IdCategory}"
+@using BlazorAppFood.Models
+@using BlazorAppFood.Data
+@using Blazored.SessionStorage;
+@using BlazorAppFood.ComponentsFolder
+
+@inject IRecipeService RecipeService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IChatService ChatService
+
+<AuthorizeView>
+    <Authorized>
+
+        <div class="container">
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <div class="card card-custom" id="card-create-recipe">
+
+                        <div class=" text-center">
+                            <a href="#"><img class="menu-icon" src="img/home.svg" alt="" width="25" height="25"></a>
+                            <a href="#"><img class="menu-icon" src="img/add.svg" alt="" width="25" height="25"></a>
+                            <a href="#"><img class="menu-icon" src="img/bookmark.svg" alt="" width="25" height="25"></a>
+                        </div>
+                        <!--<a href="#"><img src="img/add.svg" alt="" width="35" height="35"></a>-->
+                        <!-- <i class="bi bi-plus-circle"></i><span>Create</span> -->
+
+                    </div>
+
+                    <div class="card card-custom">
+                        <div class="card-custom-header">
+                            <!-- <img src="img/chef2.svg" alt="" width="25" height="25">-->
+                            <h5>Discover</h5>
+                        </div>
+
+
+                        <div class="card-custom-body">
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md">
+
+                    <div class="card card-custom text-center" id="card-create-recipe" style=" color: #fff; background-image: url('img/cozinha-italiana.jpg'); background-size: cover; height: 50vh;">
+
+                        <h5>Sugerido para si...</h5>
+                        <h2>Cozinha Italiana</h2>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                   
+                    <div class="col-md-4">
+                     
+                      
+                        
+
+                        </div>
+
+                        <!-- Column Right-->
+                        <div class="col-md">
+
+                            <div class="card card-recipe">
+
+                                <div class="card-recipe-header row">
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col">
+                                        <h6>Top Recipes this week</h6>
+                                        <p>Top mais vistos</p>
+                                        <p>Top mais bookmarked</p>
+                                        <p>Top mais avaliacoes/maior rating</p>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="card  card-recipe">
+
+                                <div class="card-recipe-header row">
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col">
+                                        <h6>Top Chefs this week</h6>
+
+                                    </div>
+                                </div>
+
+                                <div class="card-recipe-body">
+
+                                </div>
+
+                            </div>
+
+                             <div class="card  card-custom">
+                            <div class="card-custom-header">
+                                <h5>Grupos Cozinha italiana</h5>
+                            </div>
+
+                            <div class="card-custom-body">
+                                <ul>
+                                    <li><a href="">PastaLovers</a></li>
+                                    <li><a href="">Group </a></li>
+                                    <li><a href="">Group</a></li>
+                                </ul>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+</div>
+
+
+
+    </Authorized>
+    <NotAuthorized>
+
+        <h3>You are logged out</h3>
+        <p>You are not authorized to view this page.</p>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+
+@code {
+
+    [Parameter]
+    public string IdCategory { get; set; }
+
+    public User user = new User();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if (emailUser != null)
+        {
+            user = await UserService.GetUserInfo(emailUser);
+        }
+
+    }
+  
+}
+

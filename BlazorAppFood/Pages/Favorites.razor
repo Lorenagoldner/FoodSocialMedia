@@ -1,0 +1,94 @@
+﻿@page "/favorites"
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@using Blazored.SessionStorage
+@inject IRecipeService RecipeService
+@inject IUserService UserService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject NavigationManager NavigationManager
+
+
+<div class="container">
+    <div class="card form-recipe">
+
+            <div class="form-recipe-header">
+                <h1>My Favorites</h1>
+            </div>
+
+        <AuthorizeView>
+            <Authorized>
+                @if (favoriteRecipes == null)
+                {
+                    <p>Loading...</p>
+                }
+                else if (!favoriteRecipes.Any())
+                {
+                    <p>You haven't added any favorites yet.</p>
+                }
+                else
+                {
+                    <div class="row">
+                        @foreach (var recipe in favoriteRecipes)
+                        {
+                            <div class="card card-recipe col-md-6 mb-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        @if (recipe.Image != null)
+                                        {
+                                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+                                            <img class="img-recipe-card cursor-pointer w-100 h-100 object-fit-cover" src="@img" alt="Recipe image" @onclick="@(() => NavigationManager.NavigateTo("recipepage/" + recipe.Id_Recipe))">
+                                        }
+                                        else
+                                        {
+                                            <img src="img/images.svg" class="img-fluid" alt="Default image" />
+                                        }
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href= @onclick="@(() => NavigationManager.NavigateTo($"/recipepage/{recipe.Id_Recipe}"))">
+                                                    @recipe.NameRecipe
+                                                </a>
+                                            </h5>
+
+                                            @if (recipe.Tags?.Any() == true)
+                                            {
+                                                <div class="mb-2">
+                                                    @foreach (var tag in recipe.Tags)
+                                                    {
+                                                        <span class="badge bg-primary me-1">@tag.NameTag</span>
+                                                    }
+                                                </div>
+                                            }
+
+                                            <p><i class="bi bi-hourglass-split"></i> Prep: @recipe.Prep_Time</p>
+                                            <p><i class="bi bi-fire"></i> Cook: @recipe.Cook_Time</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </Authorized>
+            <NotAuthorized>
+                <p>Please log in to view your favorite recipes.</p>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    private List<Recipe> favoriteRecipes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string email = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if (!string.IsNullOrEmpty(email))
+        {
+            var user = await UserService.GetUserInfo(email);
+            favoriteRecipes = await RecipeService.GetFavoriteRecipes(user.Id_User);
+        }
+    }
+}

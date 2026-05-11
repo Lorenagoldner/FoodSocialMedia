@@ -1,0 +1,86 @@
+﻿@page "/userposts"
+@using BlazorAppFood.Models
+@using BlazorAppFood.Data
+@using Blazored.SessionStorage;
+
+@inject IRecipeService RecipeService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+
+<div class="container">
+
+    <h1>Feed Pagina de Teste</h1>
+
+    <AuthorizeView>
+        <Authorized>
+
+            @{
+                string emailUser = @context.User.Identity.Name;
+            }
+
+            <p>Welcome, @emailUser</p>
+
+            @foreach (Recipe recipe in listRecipes)
+            {
+
+                if (recipe.Image != null)
+                {
+                    var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+                    <img src="@img" />
+                }
+                else
+                {
+                    <p>Imagem Nao disponivel</p>
+                }
+
+                <h3>@recipe.NameRecipe</h3>
+                <button class="btn btn-light">Editar Receita</button>
+            }
+
+        </Authorized>
+        <NotAuthorized>
+
+            <p>You are logged out.</p>
+
+        </NotAuthorized>
+    </AuthorizeView>
+
+</div>
+
+
+@code {
+    public User user = new User();
+    List<Recipe> listRecipes = new List<Recipe>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if(emailUser != null)
+        {
+            user = await UserService.GetUserInfo(emailUser);
+            int idUser = user.Id_User;
+
+            listRecipes = await RecipeService.RecipesList(idUser);
+        }
+
+    }
+
+    @*protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if (emailUser != null)
+        {
+            user = await UserService.GetUserInfo(emailUser);
+            int idUser = user.UserId;
+
+            listRecipes = await RecipeService.RecipesList(idUser);
+        }
+
+    }*@
+
+
+}

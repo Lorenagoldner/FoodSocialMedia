@@ -1,0 +1,43 @@
+﻿@page "/welcome"
+@using BlazorAppFood.Data
+@using Blazored.SessionStorage
+@inject NavigationManager NavigationManager
+@inject ISessionStorageService SessionStorage
+@inject IUserService UserService
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="card text-center shadow p-5" style="max-width: 400px;">
+        <h2 class="fw-bold">Foodie</h2>
+        <p class="text-muted">Let's complete your profile</p>
+
+        <hr />
+
+        <img src="img/illustration-index.jpg" class="img-fluid mb-4" />
+
+        <button class="btn btn-dark rounded-pill px-4 mb-3" @onclick="Continue">LET'S GO</button>
+
+        <div class="mb-2">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+        </div>
+
+        <a href="/feed" class="text-muted small">Skip these steps</a>
+    </div>
+</div>
+
+@code {
+    private async Task Continue()
+    {
+        var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+        var user = await UserService.GetUserByEmail(email);
+
+        if (user != null)
+        {
+            NavigationManager.NavigateTo("/uploadphoto");
+        }
+        else
+        {
+            Console.WriteLine("Utilizador não encontrado.");
+        }
+    }
+}
