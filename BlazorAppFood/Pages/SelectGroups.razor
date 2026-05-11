@@ -1,0 +1,129 @@
+﻿@page "/selectgroups"
+@inject IGroupService GroupService
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+
+<h3 class="text-center mt-5">Select your groups</h3>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card p-4 shadow">
+                <h5>Groups available</h5>
+
+                <InputText class="form-control mb-2" @bind-Value="searchTerm" placeholder="Search group..." />
+
+                <select class="form-select mb-2" @bind="selectedGroupId">
+                    <option disabled selected value="">-- Select a group --</option>
+                    @foreach (var group in FilteredGroups)
+                    {
+                        <option value="@group.Id_Group">@group.Name</option>
+                    }
+                </select>
+
+                <button class="btn btn-outline-success w-100 mb-3" @onclick="JoinSelectedGroup" disabled="@(CanJoin ? false : true)">Join Selected Group</button>
+
+                @if (userGroupIds.Any())
+                {
+                    <h6 class="mt-3">Groups you've joined</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var group in JoinedGroups)
+                        {
+                            <span class="badge bg-success">@group.Name</span>
+                        }
+                    </div>
+                }
+
+                <hr />
+                <h6>Create a new group</h6>
+                <InputText @bind-Value="newGroupName" class="form-control mb-2" placeholder="Group name" />
+                <button class="btn btn-outline-primary" @onclick="CreateNewGroup">Create and Join</button>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-dark w-100" @onclick="FinishSetup">Start using Foodie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Group> groups = new();
+    private List<Group> JoinedGroups = new();
+    private HashSet<int> userGroupIds = new();
+    private string newGroupName;
+    private string searchTerm = string.Empty;
+    private int? selectedGroupId;
+    private int userId;
+
+    private IEnumerable<Group> FilteredGroups =>
+        groups
+            .Where(g => !userGroupIds.Contains(g.Id_Group))
+            .Where(g => string.IsNullOrWhiteSpace(searchTerm) || g.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private bool CanJoin => selectedGroupId.HasValue && !userGroupIds.Contains(selectedGroupId.Value);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var email = user.FindFirstValue(ClaimTypes.Name); // ou ClaimTypes.Email se usaste isso no MarkUserAsAuthenticated
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                var currentUser = await UserService.GetUserByEmail(email);
+                if (currentUser != null)
+                {
+                    userId = currentUser.Id_User;
+
+                    groups = await GroupService.GetAllGroups();
+                    JoinedGroups = (await GroupService.GetUserGroups(userId)).ToList();
+                    userGroupIds = JoinedGroups.Select(g => g.Id_Group).ToHashSet();
+                    return;
+                }
+            }
+        }
+
+        // Redireciona para login se algo falhar
+        NavigationManager.NavigateTo("/login");
+    }
+        
+    private async Task JoinSelectedGroup()
+    {
+        if (selectedGroupId.HasValue && !userGroupIds.Contains(selectedGroupId.Value))
+        {
+            await GroupService.AddUserToGroup(userId, selectedGroupId.Value);
+            var joinedGroup = groups.FirstOrDefault(g => g.Id_Group == selectedGroupId.Value);
+            if (joinedGroup != null)
+            {
+                userGroupIds.Add(joinedGroup.Id_Group);
+                JoinedGroups.Add(joinedGroup);
+                selectedGroupId = null;
+            }
+        }
+    }
+
+    private async Task CreateNewGroup()
+    {
+        if (!string.IsNullOrWhiteSpace(newGroupName))
+        {
+            await GroupService.CreateGroup(newGroupName, userId);
+            newGroupName = "";
+            groups = await GroupService.GetAllGroups();
+            JoinedGroups = (await GroupService.GetUserGroups(userId)).ToList();
+            userGroupIds = JoinedGroups.Select(g => g.Id_Group).ToHashSet();
+        }
+    }
+
+    private void FinishSetup()
+    {
+        NavigationManager.NavigateTo("/feed");
+    }
+}

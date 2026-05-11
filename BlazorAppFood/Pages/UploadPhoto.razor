@@ -1,0 +1,135 @@
+@page "/uploadphoto"
+@inject NavigationManager NavigationManager
+@inject ISessionStorageService SessionStorage
+@inject IUserService UserService
+@inject IRecipeService RecipeService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IChatService ChatService
+
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@using Blazored.SessionStorage
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@using BlazorAppFood.ComponentsFolder
+
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="card text-center shadow p-5" style="max-width: 400px;">
+        <h2 class="fw-bold">Add a Photo</h2>
+        <p class="text-muted">Help others recognize you</p>
+
+        <hr />
+
+        @if (!string.IsNullOrEmpty(previewPhoto))
+        {
+            <img src="@previewPhoto" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" />
+        }
+        else
+        {
+            <div class="rounded-circle bg-secondary mb-3" style="width: 150px; height: 150px; display: inline-block;"></div>
+        }
+
+        <InputFile OnChange="HandleSelectedPhoto" accept="image/*" class="form-control mb-3" />
+
+        <button class="btn btn-dark rounded-pill px-4 mb-3" @onclick="SaveChanges" disabled="@(!canSave)">SAVE & CONTINUE</button>
+
+        <div class="mb-2">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+        </div>
+
+        <a href="/selectgroups" class="text-muted small">Skip this step</a>
+    </div>
+</div>
+
+@code {
+
+    private string previewPhoto;
+    private byte[] photoBytes;
+    private bool canSave = false;
+    private int userId;
+    public User user = new User();
+    bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+        user = await UserService.GetUserByEmail(email);
+        if (user != null)
+        {
+            userId = user.Id_User;
+        }
+    }
+
+    private async Task HandleSelectedPhoto(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        if (file != null)
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 5);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            photoBytes = memoryStream.ToArray();
+            var base64 = Convert.ToBase64String(photoBytes);
+            var imageType = file.ContentType;
+            previewPhoto = $"data:{imageType};base64,{base64}";
+            canSave = true;
+        }
+    }
+
+
+    public async Task SaveChanges()
+    {
+        try
+        {
+            var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+            var currentUser = await UserService.GetUserByEmail(email);
+
+            if (!string.IsNullOrWhiteSpace(previewPhoto))
+            {
+                currentUser.UserPhoto = previewPhoto;
+
+                var result = await UserService.UpdateUser(currentUser);
+
+                if (result)
+                {
+                    Console.WriteLine("Foto atualizada com sucesso.");
+                    NavigationManager.NavigateTo("/selectgroups", forceLoad: true);
+                }
+                else
+                {
+                    Console.WriteLine("Erro ao inserir foto.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Nenhuma foto selecionada.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro em SaveChanges: {ex.Message}");
+        }
+    }
+
+
+
+
+    // private async Task SavePhoto()
+    // {
+    //     if (photoBytes != null)
+    //     {
+    //         var success = await UserService.UploadPhoto(userId, photoBytes);
+    //         if (success)
+    //         {
+    //             NavigationManager.NavigateTo("/selectgroups");
+    //         }
+    //         else
+    //         {
+    //             Console.WriteLine("Erro ao guardar a foto.");
+    //         }
+        //     }
+    // }
+}

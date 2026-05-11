@@ -1,0 +1,98 @@
+﻿@page "/myrecipes/{userId:int}"
+
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@inject IRecipeService RecipeService
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<div class="container">
+    <div class="card form-recipe">
+
+        <div class="form-recipe-header">
+            <h1>Receitas de @userName</h1>
+        </div>
+
+        <AuthorizeView>
+            <Authorized>
+                @if (recipe == null)
+                {
+                    <div class="text-center">
+                        <img src="~/images/loading.gif" alt="Loading..." />
+                    </div>
+                }
+                else if (!recipe.Any())
+                {
+                    <p>Este utilizador ainda não tem receitas publicadas.</p>
+                }
+                else
+                {
+                    <div class="row">
+                        @foreach (var rec in recipe)
+                        {
+                            var img = rec.Image != null
+                            ? $"data:image/jpeg;base64,{Convert.ToBase64String(rec.Image)}"
+                            : "/images/default-recipe.jpg";
+
+                            <div class="card card-recipe col-md-6 mb-4">
+                                <div class="row">
+                                    <div class="col-md-4" style="height: 200px; overflow: hidden;">
+                                        <img class="img-recipe-card w-100 h-100 object-fit-cover" src="@img" alt="Recipe image" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a href="javascript:void(0)" @onclick="@(() => NavigationManager.NavigateTo($"/recipepage/{rec.Id_Recipe}"))">
+                                                    @rec.NameRecipe
+                                                </a>
+                                            </h5>
+
+                                            <p><i class="bi bi-hourglass-split"></i> Prep: @rec.Prep_Time</p>
+                                            <p><i class="bi bi-fire"></i> Cook: @rec.Cook_Time</p>
+
+                                            <div class="d-flex gap-2 mt-3">
+                                                <button class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/editrecipe/{rec.Id_Recipe}"))">
+                                                    Edit
+                                                </button>
+                                                <button class="btn btn-danger" @onclick="@(() => NavigationManager.NavigateTo($"/deleterecipe/{rec.Id_Recipe}"))">
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </Authorized>
+            <NotAuthorized>
+                <p>Por favor, inicie sessão para ver as receitas.</p>
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public int userId { get; set; }
+
+    private IEnumerable<Recipe> recipe;
+    private string userName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserService.GetUserById(userId);
+
+        if (user != null)
+        {
+            userName = user.Username;
+            recipe = await RecipeService.GetRecipesByUserId(userId);
+        }
+        else
+        {
+            recipe = new List<Recipe>();
+            userName = "desconhecido";
+        }
+    }
+}

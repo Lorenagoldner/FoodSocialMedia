@@ -1,0 +1,100 @@
+﻿@*@page "/login"*@
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@inject ILoginService LoginService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+
+<div style="display: @display" class="modal index-modal index-modal-login" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseModal"></button>
+            </div>
+
+            <EditForm Model="@user" OnValidSubmit="@LoginUser">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="InputLoginEmail" class="form-label">Endereço de Email</label>
+                        <InputText @bind-Value="user.Email" class="form-control" id="InputLoginEmail" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="InputLoginPassword" class="form-label">Password</label>
+                        <InputText @bind-Value="user.Password" type="password" class="form-control" id="InputLoginPassword" required />
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                        <label class="form-check-label" for="exampleCheck1">Remember Me</label>
+                    </div>
+                </div>
+
+                @{
+                    if (showErrorLogin)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            Email e Password Errados
+                        </div>
+                    }
+                }
+
+                <div class="modal-footer">
+                    <!--<input type="submit" value="Login" />-->
+                    <button type="button" class="btn btn-dark" @onclick="LoginUser">Login</button>
+                    <span>Não está registado?</span>
+                    <!--<input type="button" value="SignUp" @onclick="@register" />-->
+                </div>
+
+            </EditForm>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    public User user = new User();
+    public bool showErrorLogin = false;
+
+    public async Task<bool> LoginUser()
+    {
+        //await LoginService.LogUser(user.Email, user.Password);
+        bool userIsValidated = await LoginService.LogUser(user.Email, user.Password);
+
+        if (userIsValidated)
+        {
+            ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(user.Email);
+
+            await sessionStorage.SetItemAsync("emailAddress", user.Email);
+            NavigationManager.NavigateTo("/feed");
+
+            return true;
+        }
+        else
+        {
+            showErrorLogin = true;
+            return false;
+        }
+
+        //return true;
+
+    }
+
+
+    [Parameter]
+    public string display { get; set; }
+
+    void CloseModal()
+    {
+        display = "none";
+    }
+
+}

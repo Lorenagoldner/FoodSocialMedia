@@ -1,0 +1,248 @@
+﻿@page "/editrecipe/{id:int}"
+
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@inject IRecipeService RecipeService
+@inject ITagService TagService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthProvider
+@inject IUserService UserService
+
+@if (recipe == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="@recipe" OnValidSubmit="@SaveRecipe" class="container">
+        <div class="card form-recipe">
+            <div class="form-recipe-header">
+                <h3>Informações da Receita</h3>
+            </div>
+
+            <!-- Recipe Title -->
+            <div class="mb-3">
+                <label class="form-label">Título da Receita</label>
+                <InputText class="form-control" @bind-Value="recipe.NameRecipe" required />
+            </div>
+
+            <!-- Recipe Image -->
+            <div class="mb-3">
+                <label class="form-label">Imagem da Receita</label>
+                <InputFile OnChange="HandleFileSelection" class="form-control" />
+            </div>
+
+            <!-- Prep Time -->
+            <div class="mb-3">
+                <label class="form-label">Tempo de Preparação</label>
+                <InputText class="form-control" @bind-Value="recipe.Prep_Time" required />
+            </div>
+
+            <!-- Cook Time -->
+            <div class="mb-3">
+                <label class="form-label">Tempo de Cozedura</label>
+                <InputText class="form-control" @bind-Value="recipe.Cook_Time" required />
+            </div>
+
+            <!-- Step-by-Step Instructions -->
+            <div class="mb-3">
+                <label class="form-label">Passo a Passo</label>
+                <InputTextArea class="form-control" @bind-Value="recipe.Preparation" rows="5" />
+            </div>
+
+            <hr />
+
+            <!-- Ingredients Section -->
+            <div class="col form-ingredients">
+                <img src="img/harvest.svg" alt="">
+                <label for="inputIngredients" class="form-label">Ingredientes</label>
+
+                <!-- Add New Ingredient -->
+                <div class="row">
+                    <div class="col-10">
+                        <SfAutoComplete TValue="string" TItem="Ingredient" DataSource="@allIngredients" @bind-Value="@ingredientName">
+                            <AutoCompleteFieldSettings Value="Name"></AutoCompleteFieldSettings>
+                        </SfAutoComplete>
+                    </div>
+
+                    <div class="col">
+                        <button type="button" @onclick="@(() => AddIngredient(ingredientName))">
+                            <i class="bi bi-plus-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-ingredients-content">
+                    <ul>
+                        @foreach (var ingredient in recipe.Ingredients)
+                        {
+                            <li>
+                                <button type="button" class="btn btn-outline-dark">
+                                    <span class="ingredient-label">
+                                        @ingredient.Name <span @onclick="@( () => RemoveIngredient(ingredient) )">
+                                            <strong>x</strong>
+                                        </span>
+                                    </span>
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Category Section -->
+            <div class="mb-3">
+                <label class="form-label">Categoria</label>
+                <div class="accordion" id="tagAccordion">
+                    @foreach (var category in allCategories)
+                    {
+                        var collapseId = $"collapse-{category.IdCategory}";
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading-@category.IdCategory">
+                                <button class="accordion-button collapsed fw-bold" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#@collapseId"
+                                        aria-expanded="false"
+                                        aria-controls="@collapseId">
+                                    @category.Description
+                                </button>
+                            </h2>
+                            <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="heading-@category.IdCategory" data-bs-parent="#tagAccordion">
+                                <div class="accordion-body">
+                                    @foreach (var tag in category.Tags)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   id="tag-@tag.IdTag"
+                                                   value="@tag.IdTag"
+                                                   checked="@recipe.Tags.Any(t => t.IdTag == tag.IdTag)"
+                                                   @onchange="@((ChangeEventArgs e) => ToggleTagSelection(tag.IdTag, e))" />
+                                            <label class="form-check-label" for="tag-@tag.IdTag">
+                                                @tag.NameTag
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-success" type="submit">Confirmar</button>
+                <button class="btn btn-secondary" type="button" @onclick="@Cancel">Cancelar</button>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    Recipe recipe = new Recipe();
+    string ingredientName;
+    List<Ingredient> allIngredients = new List<Ingredient>();
+    List<CategoryWithTags> allCategories = new List<CategoryWithTags>();
+    byte[] _fileBytes = null;
+    long maxFileSize = 1024 * 1024 * 15;
+
+    [Parameter] public int id { get; set; }
+    public int userId { get; set; }
+    private User? currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id == 0)
+        {
+            recipe = new Recipe
+                {
+                    Ingredients = new List<Ingredient>(),
+                    Tags = new List<Tag>()
+                };
+        }
+        else
+        {
+            recipe = await RecipeService.Recipe_GetOne(id);
+            recipe.Ingredients ??= new List<Ingredient>();
+            recipe.Tags ??= new List<Tag>();
+        }
+
+        allIngredients = (await RecipeService.IngredientList()).ToList();
+        allCategories = await TagService.GetCategoriesWithTags();
+
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userEmail = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            currentUser = await UserService.GetUserByEmail(userEmail);
+            userId = currentUser.Id_User;
+        }
+    }
+
+    protected async Task SaveRecipe()
+    {
+        await RecipeService.UpdateRecipe(recipe);
+        if (currentUser != null)
+        {
+            NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");
+        }
+    }
+
+    void Cancel()
+    {
+        if (currentUser != null)
+        {
+            NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");
+        }
+    }
+
+    protected async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var fileStream = file.OpenReadStream(maxFileSize);
+            using var ms = new MemoryStream();
+            await fileStream.CopyToAsync(ms);
+            _fileBytes = ms.ToArray();
+            recipe.Image = _fileBytes;
+        }
+    }
+
+    void AddIngredient(string ingredientName)
+    {
+        var ingredient = allIngredients.FirstOrDefault(i => i.Name == ingredientName);
+        if (ingredient != null)
+        {
+            recipe.Ingredients.Add(ingredient);
+        }
+    }
+
+    void RemoveIngredient(Ingredient ingredient)
+    {
+        recipe.Ingredients.Remove(ingredient);
+    }
+
+    void ToggleTagSelection(int tagId, ChangeEventArgs e)
+    {
+        if ((bool)e.Value)
+        {
+            var tag = allCategories.SelectMany(c => c.Tags).FirstOrDefault(t => t.IdTag == tagId);
+            if (tag != null)
+            {
+                recipe.Tags.Add(tag);
+            }
+        }
+        else
+        {
+            var tag = recipe.Tags.FirstOrDefault(t => t.IdTag == tagId);
+            if (tag != null)
+            {
+                recipe.Tags.Remove(tag);
+            }
+        }
+    }
+}

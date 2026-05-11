@@ -1,0 +1,415 @@
+﻿@page "/ProfilePage/{userId:int?}"
+
+@inject IUserService UserService
+@inject IRecipeService RecipeService
+@inject IPostService PostService
+@inject IGroupService GroupService
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IChatService ChatService
+
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+@using BlazorAppFood.Services
+@using Microsoft.AspNetCore.Components.Authorization
+
+
+@if (user == null)
+{
+    <p>A carregar perfil...</p>
+}
+else
+{
+    <div class="container">
+        <div class="profile-section d-flex flex-column align-items-center">
+            <div>
+                <img class="profile-pic" src="@user.UserPhoto" alt="Foto de Perfil" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
+            </div>
+
+            <div class="mt-3">
+                @if (!isOwnProfile)
+                {
+                    @if (!isFollowing)
+                    {
+                        <button @onclick="FollowUser" style="background-color: #e0e0e0; color: black; border: 1px solid #ccc; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                            Seguir
+                        </button>
+                    }
+                    else
+                    {
+                        <button @onclick="UnfollowUser" style="background-color: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                            A seguir
+                        </button>
+                    }
+                }
+            </div>
+
+            <p class="bio mt-3">Olá, sou @user.Username!</p>
+        </div>
+
+        <div class="main-section">
+            <h2 class="user-name">@user.Username</h2>
+            <div class="stats">
+                <div><strong>@recipes.Count()</strong><br />Receitas</div>
+                <div><strong>@string.Format("{0:0.0}", averageRating) ⭐</strong><br />Avaliação média</div>
+                <div><strong>@followerCount</strong><br />Seguidores</div>
+            </div>
+
+            <div class="publications">
+                <div class="publications-header">
+                    <h3>Publicações</h3>
+                    <a href="@($"/myrecipes/{user.Id_User}")">Ver Todas</a>
+                </div>
+
+                @foreach (var recipe in recipes.OrderByDescending(r => r.PublishedDate))
+                {
+                    <div class="post">
+                        <div class="post-header">
+                            @if (!string.IsNullOrEmpty(user.UserPhoto))
+                            {
+                                <img src="@user.UserPhoto" class="post-profile" />
+                            }
+                            else
+                            {
+                                <img src="/images/default-profile.jpg" class="post-profile" alt="Foto padrão" />
+                            }
+
+                            <div>
+                                <strong>@user.Username</strong><br />
+                                <small>@recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                        </div>
+
+                        @if (recipe.Image != null)
+                        {
+                            <img class="post-image" src="data:image/png;base64,@Convert.ToBase64String(recipe.Image)" alt="@recipe.NameRecipe" />
+                        }
+                        else
+                        {
+                            <img class="post-image" src="/images/default-recipe.jpg" alt="Imagem não disponível" />
+                        }
+
+                        <p class="post-title">@recipe.NameRecipe</p>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="groups sidebar-section">
+                <h4>Grupos</h4>
+                <ul>
+                    @if (userGroups.Any())
+                    {
+                        @foreach (var group in userGroups)
+                        {
+                            <li class="sidebar-item">
+                                <a href="@($"/grouppage/{group.Id_Group}")" class="sidebar-link">
+                                    @group.Name
+                                </a>
+                            </li>
+
+                        }
+                    }
+                    else
+                    {
+                        <li class="sidebar-item empty">Não pertence a nenhum grupo ainda.</li>
+                    }
+                </ul>
+            </div>
+
+            <div class="following sidebar-section">
+                <h4>Seguindo</h4>
+                <ul>
+                    @if (followedUsers.Any())
+                    {
+                        @foreach (var followedUser in followedUsers)
+                        {
+                            <li class="sidebar-item">
+                                <div class="sidebar-link" @onclick="() => NavigateToProfile(followedUser.Id_User)">
+                                    <img src="@followedUser.UserPhoto" alt="Foto" class="sidebar-avatar" />
+                                    <span>@followedUser.Username</span>
+                                </div>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="sidebar-item empty">Não está a seguir ninguém ainda.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        gap: 2rem;
+        padding: 2rem;
+        font-family: sans-serif;
+    }
+
+    .profile-section {
+        text-align: center;
+    }
+
+    .profile-pic {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .follow-button {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid black;
+        background: white;
+        cursor: pointer;
+    }
+
+    .bio {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .main-section {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    .user-name {
+        margin-bottom: 1rem;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .publications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .post {
+        margin-top: 1rem;
+        background: #f9f9f9;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .post-profile {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+    }
+
+    .post-image {
+        width: 100%;
+        height: auto;
+        margin-top: 0.5rem;
+        border-radius: 8px;
+    }
+
+    .post-title {
+        margin-top: 0.5rem;
+        font-weight: bold;
+    }
+
+    .sidebar {
+        padding: 1rem;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+    }
+
+    .sidebar-section {
+        margin-bottom: 2rem;
+    }
+
+        .sidebar-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0.4rem;
+        }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        padding: 0.4rem 0;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+        .sidebar-item.empty {
+            color: #777;
+            font-style: italic;
+        }
+
+        .sidebar-item:hover {
+            background-color: #e0e0e0;
+        }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+    }
+
+        .sidebar-link:hover {
+            text-decoration: underline;
+        }
+
+    .sidebar-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 0.6rem;
+        object-fit: cover;
+        border: 2px solid #ccc;
+    }
+
+    .small-profile {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+</style>
+
+@code {
+    [Parameter] public int? userId { get; set; }
+
+    private User? user;
+    private bool isOwnProfile;
+    private bool isFollowing = false;
+    private User? currentUser;
+    private int followerCount;
+
+    private List<Recipe> recipes = new();
+    private List<Posts> posts = new();
+    private decimal averageRating = 0;
+
+    private List<User> followedUsers = new();
+    private List<Group> userGroups = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userEmail = authState.User.Identity?.Name;
+
+        if (userId == null)
+        {
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                currentUser = await UserService.GetUserByEmail(userEmail);
+                user = await UserService.GetUserByEmail(userEmail);
+                followerCount = await UserService.GetFollowerCount(user.Id_User);
+                isOwnProfile = true;
+            }
+        }
+        else
+        {
+            user = await UserService.GetUserById(userId.Value);
+
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                currentUser = await UserService.GetUserByEmail(userEmail);
+                isOwnProfile = (user?.Id_User == currentUser?.Id_User);
+
+                if (!isOwnProfile && user != null && currentUser != null)
+                {
+                    isFollowing = await UserService.IsFollowing(currentUser.Id_User, user.Id_User);
+                }
+
+                if (user != null)
+            {
+                followerCount = await UserService.GetFollowerCount(user.Id_User);
+            }
+            }
+        }
+
+        if (user != null)
+        {
+            recipes = (await RecipeService.GetRecipesByUserId(user.Id_User)).ToList();
+            posts = await PostService.GetPostsByUserId(user.Id_User);
+
+            followedUsers = await UserService.GetFollowedUsers(user.Id_User);
+            userGroups = await GroupService.GetUserGroups(user.Id_User);
+
+            if (recipes.Any())
+            {
+                averageRating = recipes
+                    .Where(r => r.AverageRating > 0)
+                    .Select(r => r.AverageRating)
+                    .DefaultIfEmpty(0)
+                    .Average();
+            }
+        }
+    }
+
+    private async Task FollowUser()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var userEmail = authState.User.Identity?.Name;
+
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            if (currentUser != null && user != null)
+            {
+                bool success = await UserService.FollowUser(currentUser.Id_User, user.Id_User);
+
+                if (success)
+                {
+                    isFollowing = true;
+                }
+            }
+        }
+    }
+
+    private async Task UnfollowUser()
+    {
+        if (currentUser != null && user != null)
+        {
+            bool success = await UserService.UnfollowUser(currentUser.Id_User, user.Id_User);
+
+            if (success)
+            {
+                isFollowing = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void NavigateToProfile(int userId)
+    {
+        NavigationManager.NavigateTo($"/profilepage/{userId}", forceLoad: true);
+    }
+
+}

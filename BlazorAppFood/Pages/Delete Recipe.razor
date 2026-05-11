@@ -1,0 +1,60 @@
+﻿@page "/deleterecipe/{id:int}"
+
+@using BlazorAppFood.Data
+@using BlazorAppFood.Models
+
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+
+<h1>Apagar Receita</h1>
+<h2 style="color:red;text-align:center;font-weight:bolder;text-decoration:underline"> Apagar Permanentemente? </h2>
+
+
+@*TITULO RECEITA*@
+<h3 style="font-weight:bold;text-decoration:underline"> @recipe.NameRecipe </h3>
+
+
+@*CAMPO DE INFO GERAL*@
+<h5 class="font-weight-bold">Detalhes</h5>
+
+
+@*TEMPO DE PREPARAÇÃO*@
+<p> Tempo de Preparação: @recipe.Prep_Time </p>
+
+
+@*TEMPO DE COZEDURA*@
+<p> Tempo de Cozedura: @recipe.Cook_Time </p>
+
+
+@*PASSO  A PASSO*@
+<h5 class="font-weight-bold">Passo a Passo:</h5>
+<p> @recipe.Preparation </p>
+
+<input type="button" value="Apagar" @onclick="@Delete" />
+<input type="button" value="Cancelar" @onclick="@Cancel" />
+
+
+@code {
+    //Create a new, empty Recipe object
+    Recipe recipe = new Recipe();
+
+    [Parameter]
+    public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        recipe = await RecipeService.Recipe_GetOne(id);
+    }
+
+    protected async Task Delete()
+    {
+
+        await RecipeService.DeleteRecipe(id);
+        NavigationManager.NavigateTo("/showrecipe");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("/showrecipe");
+    }
+}

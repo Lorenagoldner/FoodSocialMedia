@@ -1,0 +1,169 @@
+﻿@using BlazorAppFood.Models
+@using Syncfusion.Blazor.DropDowns
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject Data.IUserService UserService
+@inject Data.IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+<!--Navbar-->
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand-logo" href="/feed">Foodie</a>
+
+        <form class="d-flex justify-content-center">
+            @*<input class="form-control me-2 search-nav" type="search" placeholder="Search" aria-label="Search">*@
+            <SfAutoComplete TValue="string" TItem="Recipe" DataSource="@recipes">
+                <AutoCompleteTemplates TItem="Recipe">
+                    <ItemTemplate>
+                        <div>
+                            <div @onclick="@(() => NavigationManager.NavigateTo("recipepage/" + ((context as Recipe).Id_Recipe)))" class="ename">@((context as Recipe).NameRecipe)</div>
+                            <div class="user">@((context as Recipe).Username)</div>
+                        </div>
+                    </ItemTemplate>
+                </AutoCompleteTemplates>
+                <AutoCompleteFieldSettings Value="NameRecipe"></AutoCompleteFieldSettings>
+            </SfAutoComplete>
+        </form>
+
+        <!--<div class="card card-menu">
+            <div class="container text-center">
+                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
+                    <img class="menu-icon" src="img/home.svg" alt="" width="25" height="25">
+                </NavLink>
+                <NavLink class="nav-link" href="AddRecipe" Match="NavLinkMatch.All">
+                    <img class="menu-icon" src="img/add.svg" alt="" width="25" height="25">
+                </NavLink>
+                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
+                    <img class="menu-icon" src="img/bookmark.svg" alt="" width="25" height="25">
+                </NavLink>-->
+        <!--<a href="#"><img class="menu-icon" src="img/add.svg" alt="" width="25" height="25"></a>
+        <a href="#"><img class="menu-icon" src="img/bookmark.svg" alt="" width="25" height="25"></a>-->
+        <!--</div>
+        </div>-->
+
+        <div class="dropdown">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+            <div class="list-group dropdown-content">
+                <!-- <a  href="#">Home</a> -->
+                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
+                    <i class="bi bi-house"></i>Home
+                </NavLink>
+                <NavLink class="nav-link" href="AddRecipe" Match="NavLinkMatch.All">
+                    <i class="bi bi-plus-circle"></i>Publicar Receita
+                </NavLink>
+                <NavLink class="nav-link" href="@($"/myrecipes/{user.Id_User}")" Match="NavLinkMatch.All">
+                    <i class="custom-plate-icon"></i>Minhas Receitas
+                </NavLink>
+                <NavLink class="nav-link" href="grouppage" Match="NavLinkMatch.All">
+                    <i class="bi bi-people"></i>Meus Grupos
+                </NavLink>
+                <NavLink class="nav-link" href="favorites" Match="NavLinkMatch.All">
+                    <i class="bi bi-bookmark"></i>Favoritos
+                </NavLink>
+                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
+                    <i class="bi bi-person"></i>A seguir
+                </NavLink>
+                <NavLink class="nav-link" href="userpage" style="border-top: 1px solid #e2e2e2;" Match="NavLinkMatch.All">
+                    <i class="bi bi-gear"></i>A minha conta
+                </NavLink>
+                <NavLink class="nav-link" href="" style="border-top: 1px solid #e2e2e2;" Match="NavLinkMatch.All">
+                    <i class="bi bi-door-open"></i>Sair
+                </NavLink>
+            </div>
+        </div>
+
+        <div class="me-2">
+
+            @if (@user.UserPhoto != null)
+            {
+                <a href="/profilepage"><img src="@user.UserPhoto" @onclick="NavigateToProfile" alt="" class="rounded-circle circle-user" width="60" height="60"></a>
+            }
+            else
+            {
+                <img src="img/avatar1.jpg" @onclick="NavigateToProfile" alt="" class="rounded-circle circle-user" width="60" height="60">
+            }
+
+        </div>
+
+    </div>
+</nav>
+
+
+
+
+
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private string searchText = "";
+
+    IEnumerable<Recipe> recipes;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    public User user = new User();
+
+    protected override async Task OnInitializedAsync()
+    {
+        recipes = await RecipeService.RecipeList();
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+
+        if (emailUser != null)
+        {
+            user = await UserService.GetUserInfo(emailUser);
+
+        }
+    }
+
+    private void SearchRecipes()
+    {
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            NavigationManager.NavigateTo($"/feed?search={Uri.EscapeDataString(searchText)}");
+        }
+    }
+    private void NavigateToProfile()
+    {
+        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
+        NavigationManager.NavigateTo(profileUrl);
+
+        // Forçar o refresh da página após a navegação
+        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
+
+}
+
+<style>
+    .ename {
+        display: block !important;
+        opacity: .87;
+        font-size: 16px;
+        margin-top: 8px;
+    }
+
+    .user {
+        opacity: .54;
+        font-size: 14px;
+        margin-top: 5px;
+        margin-bottom: 7px;
+    }
+
+    .custom-plate-icon {
+        background-image: url('/img/857681.png');
+        width: 20px; 
+        height: 20px;
+        display: inline-block;
+        background-size: contain; 
+        background-repeat: no-repeat; 
+        margin-right: 8px;
+    }
+</style>
