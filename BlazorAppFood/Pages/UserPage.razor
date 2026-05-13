@@ -418,7 +418,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        var emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {

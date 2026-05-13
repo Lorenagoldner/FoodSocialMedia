@@ -83,7 +83,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        string email = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string email = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (!string.IsNullOrEmpty(email))
         {

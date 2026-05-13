@@ -221,7 +221,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {
