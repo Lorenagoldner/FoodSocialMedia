@@ -302,7 +302,7 @@
             userGroups = await GroupService.GetUserGroups(user.Id_User);
             userTags = await UserService.GetUserTags(user.Id_User);
         }
->>>>>>> a9a97dc96c8dd95ca2ffb6036f11def49caad82e
+>>>>>>> c4ab2bf (Ficheiros alterados)
     }
 
     private async Task InitializeAsync()
@@ -351,7 +351,16 @@
     }
     protected override async Task OnParametersSetAsync()
     {
+<<<<<<< HEAD
         if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
+=======
+        var selected = e.Value?.ToString();
+
+        currentFeedMode = selected == "global" ? FeedMode.Global : FeedMode.Following;
+
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+        if (emailUser != null)
+>>>>>>> c4ab2bf (Ficheiros alterados)
         {
             listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
             await EnrichRecipes(listPosts);
@@ -360,7 +369,37 @@
 
     private async Task ChangeFeedMode(FeedMode mode)
     {
+<<<<<<< HEAD
         if (currentFeedMode == mode)
+=======
+        if (currentFeedMode != mode)
+        {
+            currentFeedMode = mode;
+
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (emailUser != null)
+            {
+                await LoadFeed(emailUser);
+            }
+        }
+    }
+
+    private void GoToCreateGroup()
+    {
+        NavigationManager.NavigateTo("/grouppage");
+    }
+
+    private void GoToSearchGroups()
+    {
+        NavigationManager.NavigateTo("/searchgroup");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (string.IsNullOrEmpty(email))
+>>>>>>> c4ab2bf (Ficheiros alterados)
             return;
 
         currentFeedMode = mode;

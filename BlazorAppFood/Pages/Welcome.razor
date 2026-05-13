@@ -28,7 +28,7 @@
 @code {
     private async Task Continue()
     {
-        var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+        var email = await SessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserService.GetUserByEmail(email);
 
         if (user != null)
