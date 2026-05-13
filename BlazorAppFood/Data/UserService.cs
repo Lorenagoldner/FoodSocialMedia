@@ -113,14 +113,15 @@ namespace BlazorAppFood.Data
             using (var conn = new SqlConnection(_configuration._value))
             {
 
-                string query = "SELECT  Recipe.Id_Recipe, Recipe.NameRecipe, Recipe.Image, Recipe.Prep_Time, Recipe.Cook_Time, Users.Username, Users.UserPhoto, Recipe.AverageRating FROM Recipe " +
-                                "Inner JOIN Users ON Recipe.Id_User = Users.Id_User " +
-                                "WHERE Recipe.Id_User IN" +
-                                    "(SELECT Id_User FROM User_Follower WHERE Id_Follower IN " +
-                                        "(SELECT Id_User FROM Users WHERE Email = '" + emailAddress + "'))";
+                string query = @"SELECT  Recipe.Id_Recipe, Recipe.NameRecipe, Recipe.Image, Recipe.Prep_Time, Recipe.Cook_Time, Users.Username, Users.UserPhoto, Recipe.AverageRating 
+                                FROM Recipe 
+                                Inner JOIN Users ON Recipe.Id_User = Users.Id_User 
+                                WHERE Recipe.Id_User IN
+                                (SELECT Id_User FROM User_Follower WHERE Id_Follower IN
+                                (SELECT Id_User FROM Users WHERE Email = @Email))";
 
                 //List<object> listRecipes = (await conn.QueryAsync<object>(query, commandType: CommandType.Text)).ToList();
-                return (await conn.QueryAsync<Recipe>(query, commandType: CommandType.Text)).ToList();
+                return (await conn.QueryAsync<Recipe>(query, new { Email = emailAddress}, commandType: CommandType.Text)).ToList();
             }
 
             //return user;

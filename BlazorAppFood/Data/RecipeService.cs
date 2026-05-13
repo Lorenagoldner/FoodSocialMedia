@@ -146,8 +146,8 @@ namespace BlazorAppFood.Data
 
             using (var conn = new SqlConnection(_configuration._value))
             {
-                string sQuery = $"SELECT * FROM Recipe Where Id_User = {idUser}";
-                return (await conn.QueryAsync<Recipe>(sQuery, commandType: CommandType.Text)).ToList();
+                string sQuery = @"SELECT * FROM Recipe Where Id_User = @idUser";
+                return (await conn.QueryAsync<Recipe>(sQuery, new { IdUser = idUser }, commandType: CommandType.Text)).ToList();
             }
             //return recipe;
         }
@@ -337,14 +337,19 @@ namespace BlazorAppFood.Data
 
             using (var conn = new SqlConnection(_configuration._value))
             {
-                string sql = $"IF NOT EXISTS (SELECT * FROM Ratings WHERE Id_Recipe = {idRecipe} AND Id_User = {idUser}) " +
-                             $"BEGIN INSERT INTO Ratings(Id_Recipe, Id_User, RatingValue) VALUES({idRecipe}, {idUser}, {valueRating}) END " +
-                             $"ELSE BEGIN UPDATE Ratings SET RatingValue = {valueRating} WHERE Id_Recipe = {idRecipe} AND Id_User = {idUser} END; " +
-                                    $"UPDATE  Recipe SET AverageRating = " +
-                                    $"( SELECT CAST(AVG(RatingValue) AS DECIMAL(2,1)) FROM Ratings WHERE Id_Recipe = {idRecipe} ) " +
-                                    $"WHERE Id_Recipe = {idRecipe};";
+                string sql = @"IF NOT EXISTS (SELECT * FROM Ratings WHERE Id_Recipe = @idRecipe AND Id_User = @idUser) 
+                                BEGIN INSERT INTO Ratings(Id_Recipe, Id_User, RatingValue) VALUES(@idRecipe, @idUser, @valueRating) END 
+                                ELSE BEGIN UPDATE Ratings SET RatingValue = @valueRating WHERE Id_Recipe = @idRecipe AND Id_User = @idUser END; 
+                                UPDATE  Recipe SET AverageRating = ( SELECT CAST(AVG(RatingValue) AS DECIMAL(2,1)) FROM Ratings WHERE Id_Recipe = @idRecipe)
+                                WHERE Id_Recipe = @idRecipe;";
 
-                await conn.QueryMultipleAsync(sql);
+                await conn.QueryMultipleAsync(sql,
+                                              new
+                                              {
+                                                  IdUser = idUser,
+                                                  IdRecipe = idRecipe,
+                                                  ValueRating = valueRating
+                                              });
                 return 1;
             }
 
@@ -391,13 +396,18 @@ namespace BlazorAppFood.Data
         public async Task<bool> AddFavorite(int idRecipe, int idUser)
         {
             using (var conn = new SqlConnection(_configuration._value))
-            {
-                string myQuery = $"IF NOT EXISTS (SELECT * FROM Favorites WHERE IdRecipe = {idRecipe} AND IdUser = {idUser}) " +
-                                 $"INSERT INTO Favorites(IdUser, IdRecipe) VALUES({idUser}, {idRecipe}) " +
-                                 $"ELSE DELETE FROM Favorites WHERE IdUser = {idUser} AND IdRecipe = {idRecipe}";
+            {                   
+                string myQuery = @"IF NOT EXISTS (SELECT * FROM Favorites WHERE IdRecipe = @IdRecipe AND IdUser = @idUser) 
+                                 INSERT INTO Favorites(IdUser, IdRecipe) VALUES(@idUser, @idRecipe)
+                                 ELSE DELETE FROM Favorites WHERE IdUser = @idUser AND IdRecipe = @idRecipe";
 
                 // Use ExecuteAsync instead of QuerySingleAsync as we're not expecting a result set
-                await conn.ExecuteAsync(myQuery);
+                await conn.ExecuteAsync(myQuery,
+                                        new
+                                        {
+                                            IdRecipe = idRecipe,
+                                            IdUser = idUser
+                                        });
             }
 
             return true;

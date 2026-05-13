@@ -47,8 +47,13 @@ namespace BlazorAppFood.Data
 
             using (var conn = new SqlConnection(_configuration._value))
             {
-                string sQuery = $"Select COUNT(*) from Users Where Email = '{Email}' and Password = '{Password}'";
-                int validation = conn.ExecuteScalar<int>(sQuery);
+                string sQuery = @"Select COUNT(*) from Users Where Email = @Email and Password = @Password";
+                int validation = conn.ExecuteScalar<int>(sQuery,
+                                                         new
+                                                         {
+                                                             Email = Email,
+                                                             Password = Password
+                                                         });
 
                 if (validation == 1)
                 {

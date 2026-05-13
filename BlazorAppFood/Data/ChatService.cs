@@ -23,8 +23,16 @@ namespace BlazorAppFood.Data
             using (var conn = new SqlConnection(_configuration._value))
 
             {
-                string sQuery = $"INSERT INTO Comments (IdRecipe, IdUser, Message) VALUES ({idRecipe}, {idUser}, '{message}')";
-                return await conn.ExecuteAsync(sQuery);
+                string sQuery = @"INSERT INTO Comments (IdRecipe, IdUser, Message) VALUES (@idRecipe, @idUser, @message)";
+                return await conn.ExecuteAsync(sQuery,
+                    new
+                    {
+                        IdRecipe = idRecipe,
+                        IdUser = idUser,
+                        Message = message
+                    }
+                    );
+
             }
         }
 
@@ -34,11 +42,13 @@ namespace BlazorAppFood.Data
 
 
             {
-                string sQuery = $"Select Comments.*, Users.UserPhoto FROM Comments " +
-                    $"Inner JOIN Users ON Comments.IdUser = Users.Id_User " +
-                    $"WHERE Comments.IdRecipe = '{idRecipe}' ";
-
-                return (await conn.QueryAsync<Comment>(sQuery)).ToList();
+                string sQuery = @"Select Comments.*, Users.UserPhoto 
+                                FROM Comments Inner JOIN Users ON Comments.IdUser = Users.Id_User 
+                                WHERE Comments.IdRecipe = @idRecipe ";
+                return (await conn.QueryAsync<Comment>(sQuery,
+                    new
+                    { IdRecipe = idRecipe }
+                    )).ToList();
             }
 
         }

@@ -40,11 +40,25 @@
                     <div class="card-custom-body">
                         <ul>
 
-                            @foreach (var recipe in RecommendedRecipes.Take(3))
+                           @foreach (var recipe in RecommendedRecipes.Take(3))
                             {
-                                <li>
-                                    <a href="/recipepage/@recipe.Id_Recipe">
-                                        @recipe.NameRecipe
+                                <li class="mb-3">
+
+                                    <a href="/recipepage/@recipe.Id_Recipe"
+                                       class="text-decoration-none text-dark">
+
+                                        @if (recipe.Image != null)
+                                        {
+                                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+
+                                            <img src="@img"
+                                                 width="60"
+                                                 height="60"
+                                                 style="object-fit: cover; border-radius: 8px; margin-right:10px;" />
+                                        }
+
+                                        <span>@recipe.NameRecipe</span>
+
                                     </a>
                                 </li>
                             }
