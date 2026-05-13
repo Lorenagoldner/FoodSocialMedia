@@ -288,16 +288,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("emailAddress");
-        user = await UserService.GetUserByEmail(email);
-        userGroups = await GroupService.GetUserGroups(user.Id_User);
         RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
 
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
 
-        if (emailUser != null)
+        if (userEmail != null)
         {
-            user = await UserService.GetUserInfo(emailUser);
+            user = await UserService.GetUserInfo(userEmail);
+            userGroups = await GroupService.GetUserGroups(user.Id_User);
             userTags = await UserService.GetUserTags(user.Id_User);
         }
     }
@@ -328,7 +326,7 @@
 
         currentFeedMode = selected == "global" ? FeedMode.Global : FeedMode.Following;
 
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
         if (emailUser != null)
         {
             await LoadFeed(emailUser);
@@ -346,7 +344,7 @@
         {
             currentFeedMode = mode;
 
-            string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
             if (emailUser != null)
             {
                 await LoadFeed(emailUser);
@@ -366,7 +364,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("emailAddress");
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (string.IsNullOrEmpty(email))
             return;

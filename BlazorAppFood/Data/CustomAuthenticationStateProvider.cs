@@ -18,7 +18,7 @@ namespace BlazorAppFood.Data
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            var emailUser = await _sessionStorageService.GetItemAsync<string>("emailAddress");
+            var emailUser = await _sessionStorageService.GetItemAsync<string>("userEmail");
             ClaimsIdentity identity;
 
             if (emailUser != null)

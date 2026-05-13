@@ -115,7 +115,7 @@
                 ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
                     .MarkUserAsAuthenticated(user.Email);
 
-                await sessionStorage.SetItemAsync("emailAddress", user.Email);
+                await sessionStorage.SetItemAsync("userEmail", user.Email);
 
                 isOpen = false;
 

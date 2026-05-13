@@ -56,7 +56,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if(emailUser != null)
         {
@@ -70,7 +70,7 @@
 
     @*protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {
