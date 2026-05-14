@@ -211,6 +211,19 @@ namespace BlazorAppFood.Data
             }
         }
 
+        public async Task<List<User>> GetAllUsers()
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = @"
+                    SELECT *
+                    FROM Users";
+
+                var users = await conn.QueryAsync<User>(query);
+
+                return users.ToList();
+            }
+        }
     }
 }
 
