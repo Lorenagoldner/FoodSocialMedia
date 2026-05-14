@@ -3,7 +3,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
 
-
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Data.IUserService UserService
 @inject Data.IRecipeService RecipeService
@@ -208,7 +207,11 @@
         filteredResults = searchResults;
 
         // USUÁRIO LOGADO
+<<<<<<< HEAD
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+=======
         string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+>>>>>>> 441ce98 (Corrigir barra de busca)
 
         if (emailUser != null)
         {
@@ -216,10 +219,32 @@
         }
     }
 
+<<<<<<< HEAD
+  private void NavigateToProfile()
+{
+    var profileUrl = "/profilepage";
+    NavigationManager.NavigateTo(profileUrl);
+=======
     private void NavigateToProfile()
     {
         var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
         NavigationManager.NavigateTo(profileUrl);
+
+        // Forçar o refresh da página após a navegação
+        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
+
+    private async Task Logout()
+    {
+        // Limpa o session storage e marca o utilizador como não autenticado
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+            .MarkUserAsLoggedOut();
+
+        // Redireciona para a barra (raiz da aplicação)
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+>>>>>>> 441ce98 (Corrigir barra de busca)
 
     JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
 }
