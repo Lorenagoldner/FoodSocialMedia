@@ -1,10 +1,13 @@
 ﻿@using BlazorAppFood.Models
+@using BlazorAppFood.Data
+@using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Data.IUserService UserService
 @inject Data.IRecipeService RecipeService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
 <!--Navbar-->
 <nav class="navbar">
     <div class="container">
@@ -68,9 +71,9 @@
                 <NavLink class="nav-link" href="userpage" style="border-top: 1px solid #e2e2e2;" Match="NavLinkMatch.All">
                     <i class="bi bi-gear"></i>A minha conta
                 </NavLink>
-                <NavLink class="nav-link" href="" style="border-top: 1px solid #e2e2e2;" Match="NavLinkMatch.All">
+                <a class="nav-link" href="javascript:void(0)" @onclick="Logout" style="border-top: 1px solid #e2e2e2; cursor: pointer;">
                     <i class="bi bi-door-open"></i>Sair
-                </NavLink>
+                </a>
             </div>
         </div>
 
@@ -138,6 +141,16 @@
         // Forçar o refresh da página após a navegação
         // Após a navegação, a página será recarregada, ou seja, você pode usar:
         JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
+
+    private async Task Logout()
+    {
+        // Limpa o session storage e marca o utilizador como não autenticado
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+            .MarkUserAsLoggedOut();
+
+        // Redireciona para a barra (raiz da aplicação)
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
 }
