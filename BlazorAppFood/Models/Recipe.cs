@@ -31,5 +31,8 @@ namespace BlazorAppFood.Models
         public List<Ingredient> Ingredient { get; set; } = new();
 
         public int FavoriteCount { get; set; }
+
+        public string SearchText =>
+         $"{NameRecipe} {Username} {string.Join(" ", Tags?.Select(t => t.NameTag) ?? new List<string>())}";
     }
 }
