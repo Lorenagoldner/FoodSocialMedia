@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject ILoginService LoginService
 
 
 <div class="modal fade @(isOpen ? "show d-block" : "")"
@@ -106,7 +107,7 @@
 
         if (success)
         {
-            bool loginSuccess = await RegisterService.LoginRegist(
+            bool loginSuccess = await LoginService.LogUser(
                 user.Email,
                 user.Password);
 
