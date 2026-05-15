@@ -9,6 +9,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
 <!--Navbar-->
 <nav class="navbar">
     <div class="container">
@@ -99,10 +100,14 @@
                     <i class="bi bi-gear"></i>A minha conta
 
                 </NavLink>
-                <a class="nav-link" href="javascript:void(0)" @onclick="Logout" style="border-top: 1px solid #e2e2e2; cursor: pointer;">
+               <a class="nav-link"
+                   href="javascript:void(0)"
+                   @onclick="Logout"
+                   style="border-top: 1px solid #e2e2e2; cursor: pointer;">
+
                     <i class="bi bi-door-open"></i>Sair
 
-                </a>
+              </a>
 
             </div>
 
@@ -206,7 +211,7 @@
         {
             user = await UserService.GetUserInfo(emailUser);
         }
-    }
+      }
 
   private void NavigateToProfile()
 {
