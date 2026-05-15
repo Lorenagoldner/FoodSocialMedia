@@ -21,5 +21,6 @@ namespace BlazorAppFood.Data
         Task<User> GetUserById(int idUser);
         Task<bool> UploadPhoto(int userId, byte[] photoBytes);
         Task<List<Tag>> GetUserTags(int userId);
+        Task<List<User>> GetAllUsers();
     }
 }
