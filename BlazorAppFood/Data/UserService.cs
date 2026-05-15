@@ -24,7 +24,9 @@ namespace BlazorAppFood.Data
 
             using (var conn = new SqlConnection(_configuration._value))
             {
-                string sQuery = "SELECT Id_User, Username, UserPhoto FROM Users WHERE Email = @Email";
+                // Importante: trazer também o Email para que o UpdateUser não escreva NULL
+                // no campo Email quando só estamos a alterar foto/nome/password.
+                string sQuery = "SELECT Id_User, Username, Email, UserPhoto FROM Users WHERE Email = @Email";
                 user = await conn.QuerySingleAsync<User>(sQuery, new { Email = emailAddress });
             }
 
@@ -188,6 +190,25 @@ namespace BlazorAppFood.Data
                 var result = await conn.ExecuteAsync(query, new
                 {
                     UserPhoto = photoBytes,
+                    UserId = userId
+                });
+
+                return result > 0;
+            }
+        }
+
+        // Atualiza apenas a foto do utilizador (guardada como data URL base64 em UserPhoto).
+        // Existe para que o fluxo de mudar foto não dependa de Email/Password estarem
+        // carregados em memória — só toca na coluna UserPhoto.
+        public async Task<bool> UpdateUserPhoto(int userId, string photoBase64)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                var query = "UPDATE Users SET UserPhoto = @UserPhoto WHERE Id_User = @UserId";
+
+                var result = await conn.ExecuteAsync(query, new
+                {
+                    UserPhoto = photoBase64,
                     UserId = userId
                 });
 
