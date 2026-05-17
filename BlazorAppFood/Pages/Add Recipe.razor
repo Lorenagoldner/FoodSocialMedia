@@ -188,7 +188,7 @@
     protected override async Task OnInitializedAsync()
     {
         ingredients = await RecipeService.IngredientList();
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {

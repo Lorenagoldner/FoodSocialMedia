@@ -44,7 +44,7 @@ namespace BlazorAppFood.Data
                 if (isValid)
                 {
                     // Store email in sessionStorage after successful login
-                    await _sessionStorage.SetItemAsync("email", Email);
+                    await _sessionStorage.SetItemAsync("userEmail", Email);
                     return true;
                 }
                 else
