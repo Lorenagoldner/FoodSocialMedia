@@ -52,17 +52,17 @@ namespace BlazorAppFood.Data
         //                                                     Password = Password
         //                                                 });
 
-                if (validation == 1)
-                {
-                    // Store email in sessionStorage after successful login
-                    await _sessionStorage.SetItemAsync("userEmail", Email);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+        //        if (validation == 1)
+        //        {
+        //            // Store email in sessionStorage after successful login
+        //            await _sessionStorage.SetItemAsync("userEmail", Email);
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            return false;
+        //        }
+        //    }
         }
 
     }
