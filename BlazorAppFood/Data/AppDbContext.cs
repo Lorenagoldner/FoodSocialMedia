@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using BlazorAppFood.Models;
 
 namespace BlazorAppFood.Data
 {
@@ -8,5 +9,7 @@ namespace BlazorAppFood.Data
             : base(options)
         {
         }
+
+        public DbSet<Notification> Notifications { get; set; }
     }
 }
