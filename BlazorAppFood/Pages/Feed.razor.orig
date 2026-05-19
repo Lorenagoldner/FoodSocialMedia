@@ -1,0 +1,387 @@
+﻿@page "/feed"
+@page "/feed/{TagId:int?}"
+@using BlazorAppFood.Models
+@using BlazorAppFood.Data
+@using Blazored.SessionStorage;
+@using BlazorAppFood.ComponentsFolder
+
+@inject IUserService UserService
+@inject IGroupService GroupService
+@inject IRecipeService RecipeService
+@inject NavigationManager NavigationManager
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+    <AuthorizeView>
+        <Authorized>
+          
+            <div class="container">
+                <div class="row">
+
+                    <!-- ------ Column Left ------ -->
+
+                    <div class="col-md">
+
+                    <div class="card card-custom" id="card-create-recipe" @onclick="@(() => NavigationManager.NavigateTo("/addrecipe"))">
+
+                            <i class="bi bi-plus-circle" style="display:inline"></i><span>Criar Receita</span>
+
+                        </div>
+
+                        <div class="card card-custom cursor-pointer" @onclick="@(() => NavigationManager.NavigateTo("categorypage"))" style="background-image: url('img/cozinha-italiana.jpg'); background-size: cover; height: 50vh; color: #fff;">
+                            <div class="card-custom-header">
+                                <h5>Descobre</h5>
+                            </div>
+
+                            <div class="card-custom-body">
+                                <h3>Cozinha Italiana</h3>
+                            </div>
+                        </div>
+
+                    <div class="card-custom-body">
+                        <ul>
+
+                           @foreach (var recipe in RecommendedRecipes.Take(3))
+                            {
+                                <li class="mb-3">
+
+                                    <a href="/recipepage/@recipe.Id_Recipe"
+                                       class="text-decoration-none text-dark">
+
+                                        @if (recipe.Image != null)
+                                        {
+                                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+
+                                            <img src="@img"
+                                                 width="60"
+                                                 height="60"
+                                                 style="object-fit: cover; border-radius: 8px; margin-right:10px;" />
+                                        }
+
+                                        <span>@recipe.NameRecipe</span>
+
+                                    </a>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+
+                    </div>
+
+                    <!-- ------ Column Center ------ -->
+
+                    <div class="col-md-6">
+
+                    <div class="d-flex justify-content-center mb-4">
+                        <button class="icon-button me-2 @GetTabClass(FeedMode.Global)" @onclick="() => ChangeFeedMode(FeedMode.Global)" style="background: none; border: none; padding: 0; font-size: 2rem; cursor: pointer; outline: none; box-shadow: none;">
+                            🌍
+                        </button>
+
+                        <button class="icon-button @GetTabClass(FeedMode.Following)" @onclick="() => ChangeFeedMode(FeedMode.Following)" style="background: none; border: none; padding: 0; font-size: 2rem; cursor: pointer; outline: none; box-shadow: none;" title="A Seguir">
+                            👥
+                        </button>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        @if (currentFeedMode == FeedMode.Global)
+                        {
+                            <span><strong>Feed Global</strong></span>
+                        }
+                        else if (currentFeedMode == FeedMode.Following)
+                        {
+                            <span><strong>A Seguir</strong></span>
+                        }
+                    </div>
+
+                    @if (listPosts.Count == 0)
+                    {
+                        <p class="text-muted text-center">Nenhuma receita encontrada. Tenta seguir alguém!</p>
+                    }
+
+                        @foreach (Recipe recipe in listPosts)
+                        {
+                            <div class="card card-recipe" style="margin:30px 20px 0px 20px; max-width: 540px;">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        @if (recipe.Image != null)
+                                        {
+                                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+                                            <img class="img-recipe-card cursor-pointer" src="@img" alt="..." @onclick="@(() => NavigationManager.NavigateTo("recipepage/" + recipe.Id_Recipe))">
+                                        }
+                                        else
+                                        {
+                                            <img src="img/images.svg" alt="">
+                                        }
+                                        
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title cursor-pointer" @onclick="@(() => NavigationManager.NavigateTo("recipepage/" + recipe.Id_Recipe))">@recipe.NameRecipe</h5>
+
+                                        <div class="row mb-2">
+                                            <div class="col-4">
+                                                <i class="bi bi-star-fill"></i> @recipe.AverageRating
+                                            </div>
+                                            <div class="col-4">
+                                                <i class="bi bi-bookmarks-fill"></i> @recipe.FavoriteCount
+                                            </div>
+
+                                        </div>
+
+                                        <div class="row mb-2">
+                                            <div class="col-6">
+                                                <i class="bi bi-hourglass-split"></i> Prep: @recipe.Prep_Time 
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="bi bi-fire"></i> Cook: @recipe.Cook_Time 
+                                            </div>
+                                        </div>
+
+                                            <br><br><br><br>
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    @if (@recipe.UserPhoto != null)
+                                                    {
+                                                    <img src="@recipe.UserPhoto" alt="" class="rounded-circle" style="cursor: pointer;" width="50" height="50" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="img/avatar2.jpg" alt="" class="rounded-circle" width="55" height="55">
+                                                    }                                       
+                                                </div>
+                                            <div class="col d-flex align-items-center" style="cursor: pointer;" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
+                                                    <p class="card-text">@recipe.Username </p>
+
+                                                    @*<p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>*@
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @*<div class="card  card-recipe">
+
+                                <div class="card-recipe-header row">
+                                    <div class="col-2">
+
+                                        @if (@recipe.UserPhoto != null)
+                                        {
+                                            <img src="@recipe.UserPhoto" alt="" class="rounded-circle" width="55" height="55">
+                                        }
+                                        else
+                                        {
+                                            <img src="img/avatar2.jpg" alt="" class="rounded-circle" width="55" height="55">
+                                        }
+
+                                    </div>
+                                    <div class="col">
+                                        <h6>@recipe.Username</h6>
+                                        <hr>
+                                    </div>
+                                </div>
+                                <div class="card-recipe-body">
+
+                                    @if (recipe.Image != null)
+                                    {
+                                        var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+                                        <img src="@img" />
+                                    }
+                                    else
+                                    {
+                                        <img src="img/images.svg" alt="">
+                                    }
+
+                                    <h5>@recipe.NameRecipe</h5>
+
+                                    <span>@recipe.AverageRating</span> <i class="bi bi-star"></i>
+
+                                    <button @onclick="@(() => NavigationManager.NavigateTo("recipepage/" + recipe.Id_Recipe))">View Recipe</button>
+
+                                </div>
+
+                            </div>*@
+                        }
+
+
+                    </div>
+
+                    <!-- ------ Column Right ------ -->
+
+                    <div class="col-md">
+
+                        <div class="card card-custom">
+                            <div class="card-custom-header">
+                            <h5>
+                                <a href="/grouppage" class="text-decoration-none text-dark">Os Meus Grupos</a>
+                            </h5>
+                        </div>
+
+                            <div class="card-custom-body">
+                                @if (userGroups != null && userGroups.Any())
+                                {
+                                    <ul>
+                                        @foreach (var group in userGroups)
+                                        {
+                                            <li><a href="@($"/grouppage/{group.Id_Group}")">@group.Name</a></li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-muted">Ainda não pertences a nenhum grupo.</p>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-primary me-2" @onclick="GoToCreateGroup">Criar Grupo</button>
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="GoToSearchGroups">Procurar Grupos</button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card card-custom">
+                            <div class="card-custom-header">
+                                <h5>As minhas tags</h5>
+                            </div>
+
+                            <div class="card-custom-body">
+                                <ul class="list-unstyled">
+                                    @foreach (var tag in userTags)
+                                    {
+                                        <li><a href="/feed/@tag.IdTag">@tag.NameTag</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>         
+
+        </Authorized>
+        <NotAuthorized>
+
+            <h3>You are logged out</h3>
+            <p>You are not authorized to view this page.</p>
+
+        </NotAuthorized>
+    </AuthorizeView>
+
+@code {
+    public enum FeedMode
+    {
+        Global,
+        Following
+    }
+
+    FeedMode currentFeedMode = FeedMode.Global;
+
+    public List<Recipe> listPosts = new();
+    public List<Recipe> RecommendedRecipes = new();
+    public User user = new();
+    private List<Group> userGroups = new();
+    public List<Tag> userTags = new();
+
+    [Parameter] public int? TagId { get; set; }
+
+    private string? userEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+<<<<<<< HEAD
+        await InitializeAsync();
+=======
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
+
+        string userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (userEmail != null)
+        {
+            user = await UserService.GetUserInfo(userEmail);
+            userGroups = await GroupService.GetUserGroups(user.Id_User);
+            userTags = await UserService.GetUserTags(user.Id_User);
+        }
+>>>>>>> a9a97dc96c8dd95ca2ffb6036f11def49caad82e
+    }
+
+    private async Task InitializeAsync()
+    {
+        userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (string.IsNullOrEmpty(userEmail))
+            return;
+
+        user = await UserService.GetUserByEmail(userEmail);
+
+        if (user == null)
+            return;
+
+        userGroups = await GroupService.GetUserGroups(user.Id_User);
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
+        userTags = await UserService.GetUserTags(user.Id_User);
+
+        await LoadFeed();
+    }
+
+    private async Task LoadFeed()
+    {
+        if (user == null)
+            return;
+
+        if (currentFeedMode == FeedMode.Global)
+        {
+            listPosts = (await RecipeService.RecipeList()).ToList();
+        }
+        else
+        {
+            listPosts = await UserService.GetFollowingRecipes(user.Email);
+        }
+
+        await EnrichRecipes(listPosts);
+    }
+
+    private async Task EnrichRecipes(List<Recipe> recipes)
+    {
+        foreach (var recipe in recipes)
+        {
+            recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
+            recipe.FavoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
+        {
+            listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
+            await EnrichRecipes(listPosts);
+        }
+    }
+
+    private async Task ChangeFeedMode(FeedMode mode)
+    {
+        if (currentFeedMode == mode)
+            return;
+
+        currentFeedMode = mode;
+
+        await LoadFeed();
+    }
+
+    private string GetTabClass(FeedMode mode)
+        => currentFeedMode == mode ? "btn-primary" : "btn-outline-primary";
+
+    private void GoToCreateGroup()
+        => NavigationManager.NavigateTo("/grouppage");
+
+    private void GoToSearchGroups()
+        => NavigationManager.NavigateTo("/searchgroup");
+
+    public async Task FilterByTag(int tagId)
+    {
+        listPosts = await RecipeService.GetRecipesByTag(tagId);
+        await EnrichRecipes(listPosts);
+    }
+}
+
+   
