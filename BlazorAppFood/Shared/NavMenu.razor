@@ -3,7 +3,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
 
-
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Data.IUserService UserService
 @inject Data.IRecipeService RecipeService
@@ -101,16 +100,14 @@
                     <i class="bi bi-gear"></i>A minha conta
 
                 </NavLink>
-                <a class="nav-link" href="javascript:void(0)" @onclick="Logout" style="border-top: 1px solid #e2e2e2; cursor: pointer;">
-
-                <NavLink class="nav-link"
-                         href=""
-                         style="border-top: 1px solid #e2e2e2;"
-                         Match="NavLinkMatch.All">
+               <a class="nav-link"
+                   href="javascript:void(0)"
+                   @onclick="Logout"
+                   style="border-top: 1px solid #e2e2e2; cursor: pointer;">
 
                     <i class="bi bi-door-open"></i>Sair
 
-                </a>
+              </a>
 
             </div>
 
@@ -208,18 +205,18 @@
         filteredResults = searchResults;
 
         // USUÁRIO LOGADO
-        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
 
         if (emailUser != null)
         {
             user = await UserService.GetUserInfo(emailUser);
         }
-    }
+      }
 
-    private void NavigateToProfile()
-    {
-        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
-        NavigationManager.NavigateTo(profileUrl);
+  private void NavigateToProfile()
+{
+    var profileUrl = "/profilepage";
+    NavigationManager.NavigateTo(profileUrl);
 
     JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
 }
