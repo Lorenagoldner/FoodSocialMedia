@@ -2,7 +2,6 @@
 @using BlazorAppFood.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
-
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Data.IUserService UserService
 @inject Data.IRecipeService RecipeService
@@ -13,238 +12,185 @@
 <!--Navbar-->
 <nav class="navbar">
     <div class="container">
-
         <a class="navbar-brand-logo" href="/feed">Foodie</a>
-
         <form class="d-flex justify-content-center">
-
             <SfAutoComplete TValue="string"
                             TItem="SearchResult"
                             DataSource="@searchResults"
                             Filtering="OnFilter">
-
                 <AutoCompleteTemplates TItem="SearchResult">
-
                     <ItemTemplate Context="item">
-
                         <div @onclick="@(() => NavigationManager.NavigateTo(item.Route))">
-
                             @if (item.Type == "Recipe")
                             {
-                                <div class="ename">
-                                    🍰 @item.Title
-                                </div>
+                                <div class="ename">🍰 @item.Title</div>
                             }
                             else if (item.Type == "Tag")
                             {
-                                <div class="ename">
-                                    🏷️ @item.Title
-                                </div>
+                                <div class="ename">🏷️ @item.Title</div>
                             }
                             else if (item.Type == "User")
                             {
-                                <div class="ename">
-                                    👤 @item.Title
-                                </div>
+                                <div class="ename">👤 @item.Title</div>
                             }
-
                         </div>
-
                     </ItemTemplate>
-
                 </AutoCompleteTemplates>
-
                 <AutoCompleteFieldSettings Value="Title"></AutoCompleteFieldSettings>
-
             </SfAutoComplete>
-
         </form>
 
         <div class="dropdown">
-
             <div class="bar1"></div>
             <div class="bar2"></div>
             <div class="bar3"></div>
-
             <div class="list-group dropdown-content">
-
                 <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
                     <i class="bi bi-house"></i>Home
                 </NavLink>
-
                 <NavLink class="nav-link" href="AddRecipe" Match="NavLinkMatch.All">
                     <i class="bi bi-plus-circle"></i>Publicar Receita
                 </NavLink>
-
                 <NavLink class="nav-link" href="@($"/myrecipes/{user.Id_User}")" Match="NavLinkMatch.All">
                     <i class="custom-plate-icon"></i>Minhas Receitas
                 </NavLink>
-
                 <NavLink class="nav-link" href="grouppage" Match="NavLinkMatch.All">
                     <i class="bi bi-people"></i>Meus Grupos
                 </NavLink>
-
                 <NavLink class="nav-link" href="favorites" Match="NavLinkMatch.All">
                     <i class="bi bi-bookmark"></i>Favoritos
                 </NavLink>
-
                 <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
                     <i class="bi bi-person"></i>A seguir
                 </NavLink>
-
-                <NavLink class="nav-link"
-                         href="userpage"
+                <NavLink class="nav-link" href="userpage"
                          style="border-top: 1px solid #e2e2e2;"
                          Match="NavLinkMatch.All">
-
                     <i class="bi bi-gear"></i>A minha conta
-
                 </NavLink>
-               <a class="nav-link"
-                   href="javascript:void(0)"
-                   @onclick="Logout"
+                <a class="nav-link" href="javascript:void(0)" @onclick="Logout"
                    style="border-top: 1px solid #e2e2e2; cursor: pointer;">
-
                     <i class="bi bi-door-open"></i>Sair
-
-              </a>
-
+                </a>
             </div>
-
         </div>
 
         <div class="me-2">
-
             @if (user != null && user.UserPhoto != null)
             {
                 <a href="/profilepage">
-                    <img src="@user.UserPhoto"
-                         @onclick="NavigateToProfile"
-                         alt=""
-                         class="rounded-circle circle-user"
-                         width="60"
-                         height="60">
+                    <img src="@user.UserPhoto" @onclick="NavigateToProfile" alt=""
+                         class="rounded-circle circle-user" width="60" height="60">
                 </a>
             }
             else
             {
-                <img src="img/avatar1.jpg"
-                     @onclick="NavigateToProfile"
-                     alt=""
-                     class="rounded-circle circle-user"
-                     width="60"
-                     height="60">
+                <img src="img/avatar1.jpg" @onclick="NavigateToProfile" alt=""
+                     class="rounded-circle circle-user" width="60" height="60">
             }
-
         </div>
-
     </div>
-
 </nav>
 
 @code {
-
     private bool collapseNavMenu = true;
-
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     public User user = new User();
 
-    // LISTAS DE BUSCA
     private List<SearchResult> searchResults = new();
-
     private List<SearchResult> filteredResults = new();
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
 
     protected override async Task OnInitializedAsync()
     {
-        // RECEITAS
-        var recipes = await RecipeService.GetAllRecipes();
-
-        foreach (var recipe in recipes)
+        // ========== PRIMEIRO: carregar o user logado ==========
+        // CRÍTICO: tem de ser o primeiro await. Se ficar no fim e
+        // qualquer await acima falhar, o user.Id_User fica em 0
+        // e os links da NavMenu apontam para /myrecipes/0.
+        try
         {
-            searchResults.Add(new SearchResult
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (!string.IsNullOrEmpty(emailUser))
             {
-                Title = recipe.NameRecipe,
-                Type = "Recipe",
-                Route = $"/recipepage/{recipe.Id_Recipe}"
-            });
+                user = await UserService.GetUserInfo(emailUser);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro a carregar utilizador logado: {ex.Message}");
         }
 
-        // TAGS
-        var tags = await RecipeService.GetAllTagsAsync();
-
-        foreach (var tag in tags)
+        // ========== DEPOIS: carregar dados de busca ==========
+        // Envolvido em try/catch para que se um dos serviços falhar,
+        // o user logado já está carregado e o resto da NavMenu funciona.
+        try
         {
-            searchResults.Add(new SearchResult
+            var recipes = await RecipeService.GetAllRecipes();
+            foreach (var recipe in recipes)
             {
-                Title = tag.NameTag,
-                Type = "Tag",
-                Route = $"/feed/{tag.IdTag}"
-            });
-        }
+                searchResults.Add(new SearchResult
+                {
+                    Title = recipe.NameRecipe,
+                    Type = "Recipe",
+                    Route = $"/recipepage/{recipe.Id_Recipe}"
+                });
+            }
 
-        // USUÁRIOS
-        var users = await UserService.GetAllUsers();
-
-        foreach (var item in users)
-        {
-            searchResults.Add(new SearchResult
+            var tags = await RecipeService.GetAllTagsAsync();
+            foreach (var tag in tags)
             {
-                Title = item.Username,
-                Type = "User",
-                Route = $"/ProfilePage/{item.Id_User}"
-            });
+                searchResults.Add(new SearchResult
+                {
+                    Title = tag.NameTag,
+                    Type = "Tag",
+                    Route = $"/feed/{tag.IdTag}"
+                });
+            }
+
+            var users = await UserService.GetAllUsers();
+            foreach (var item in users)
+            {
+                searchResults.Add(new SearchResult
+                {
+                    Title = item.Username,
+                    Type = "User",
+                    Route = $"/ProfilePage/{item.Id_User}"
+                });
+            }
+
+            filteredResults = searchResults;
         }
-
-        // LISTA INICIAL
-        filteredResults = searchResults;
-
-        // USUÁRIO LOGADO
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
-
-        if (emailUser != null)
+        catch (Exception ex)
         {
-            user = await UserService.GetUserInfo(emailUser);
+            Console.WriteLine($"Erro a carregar dados de busca: {ex.Message}");
         }
-      }
+    }
 
-  private void NavigateToProfile()
-{
-    var profileUrl = "/profilepage";
-    NavigationManager.NavigateTo(profileUrl);
+    private void NavigateToProfile()
+    {
+        NavigationManager.NavigateTo("/profilepage");
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
 
-    JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    private async Task OnFilter(FilteringEventArgs args)
+    {
+        string searchText = args.Text?.ToLower() ?? "";
+        filteredResults = searchResults
+            .Where(x => (x.Title ?? "").ToLower().Contains(searchText))
+            .ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Logout()
+    {
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+            .MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
 }
 
-private async Task OnFilter(FilteringEventArgs args)
-{
-    string searchText = args.Text?.ToLower() ?? "";
-
-    filteredResults = searchResults
-        .Where(x =>
-            (x.Title ?? "")
-            .ToLower()
-            .Contains(searchText))
-        .ToList();
-
-    await InvokeAsync(StateHasChanged);
-}
-
-private async Task Logout()
-{
-     // Limpa o session storage e marca o utilizador como não autenticado
-    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
-        .MarkUserAsLoggedOut();
-
-    // Redireciona para a barra (raiz da aplicação)
-    NavigationManager.NavigateTo("/", forceLoad: true);
-}
-}
 <style>
     .ename {
         display: block !important;
@@ -262,12 +208,11 @@ private async Task Logout()
 
     .custom-plate-icon {
         background-image: url('/img/857681.png');
-        width: 20px; 
+        width: 20px;
         height: 20px;
         display: inline-block;
-        background-size: contain; 
-        background-repeat: no-repeat; 
+        background-size: contain;
+        background-repeat: no-repeat;
         margin-right: 8px;
     }
-
-}
+</style>
