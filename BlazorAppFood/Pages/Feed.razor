@@ -275,120 +275,100 @@
         Following
     }
 
+    FeedMode currentFeedMode = FeedMode.Global;
 
-    FeedMode currentFeedMode = FeedMode.Global; // default
-    public List<Recipe> listPosts = new List<Recipe>();
+    public List<Recipe> listPosts = new();
     public List<Recipe> RecommendedRecipes = new();
-    public User user = new User();
-    private List<Group> userGroups;
+    public User user = new();
+    private List<Group> userGroups = new();
     public List<Tag> userTags = new();
-
 
     [Parameter] public int? TagId { get; set; }
 
+    private string? userEmail;
+
     protected override async Task OnInitializedAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("userEmail");
-        user = await UserService.GetUserByEmail(email);
-        userGroups = await GroupService.GetUserGroups(user.Id_User);
-        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
-
-        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-
-        if (emailUser != null)
-        {
-            user = await UserService.GetUserInfo(emailUser);
-            userTags = await UserService.GetUserTags(user.Id_User);
-        }
+        await InitializeAsync();
     }
 
-    private async Task LoadFeed(string email)
+    private async Task InitializeAsync()
     {
+        userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (string.IsNullOrEmpty(userEmail))
+            return;
+
+        user = await UserService.GetUserByEmail(userEmail);
+
+        if (user == null)
+            return;
+
+        userGroups = await GroupService.GetUserGroups(user.Id_User);
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
+        userTags = await UserService.GetUserTags(user.Id_User);
+
+        await LoadFeed();
+    }
+
+    private async Task LoadFeed()
+    {
+        if (user == null)
+            return;
+
         if (currentFeedMode == FeedMode.Global)
         {
             listPosts = (await RecipeService.RecipeList()).ToList();
         }
         else
         {
-            listPosts = await UserService.GetFollowingRecipes(email);
+            listPosts = await UserService.GetFollowingRecipes(user.Email);
         }
 
-        foreach (var recipe in listPosts)
+        await EnrichRecipes(listPosts);
+    }
+
+    private async Task EnrichRecipes(List<Recipe> recipes)
+    {
+        foreach (var recipe in recipes)
         {
             recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
             recipe.FavoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
         }
-
-        StateHasChanged();
     }
-
-    private async Task OnFeedModeChange(ChangeEventArgs e)
+    protected override async Task OnParametersSetAsync()
     {
-        var selected = e.Value?.ToString();
-
-        currentFeedMode = selected == "global" ? FeedMode.Global : FeedMode.Following;
-
-        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-        if (emailUser != null)
+        if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
         {
-            await LoadFeed(emailUser);
+            listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
+            await EnrichRecipes(listPosts);
         }
-    }
-
-    private string GetTabClass(FeedMode mode)
-    {
-        return currentFeedMode == mode ? "btn-primary" : "btn-outline-primary";
     }
 
     private async Task ChangeFeedMode(FeedMode mode)
     {
-        if (currentFeedMode != mode)
-        {
-            currentFeedMode = mode;
-
-            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-            if (emailUser != null)
-            {
-                await LoadFeed(emailUser);
-            }
-        }
-    }
-
-    private void GoToCreateGroup()
-    {
-        NavigationManager.NavigateTo("/grouppage");
-    }
-
-    private void GoToSearchGroups()
-    {
-        NavigationManager.NavigateTo("/searchgroup");
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        var email = await sessionStorage.GetItemAsync<string>("userEmail");
-
-        if (string.IsNullOrEmpty(email))
+        if (currentFeedMode == mode)
             return;
 
-        if (TagId.HasValue)
-            listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
-        else
-            await LoadFeed(email);
+        currentFeedMode = mode;
 
-        StateHasChanged();
+        await LoadFeed();
     }
+
+    private string GetTabClass(FeedMode mode)
+        => currentFeedMode == mode ? "btn-primary" : "btn-outline-primary";
+
+    private void GoToCreateGroup()
+        => NavigationManager.NavigateTo("/grouppage");
+
+    private void GoToSearchGroups()
+        => NavigationManager.NavigateTo("/searchgroup");
 
     public async Task FilterByTag(int tagId)
     {
         listPosts = await RecipeService.GetRecipesByTag(tagId);
-
-        foreach (var recipe in listPosts)
-        {
-            recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
-        }
+        await EnrichRecipes(listPosts);
     }
-
 }
 
    
