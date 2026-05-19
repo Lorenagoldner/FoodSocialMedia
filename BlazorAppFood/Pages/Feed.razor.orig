@@ -289,7 +289,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+<<<<<<< HEAD
         await InitializeAsync();
+=======
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
+
+        string userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (userEmail != null)
+        {
+            user = await UserService.GetUserInfo(userEmail);
+            userGroups = await GroupService.GetUserGroups(user.Id_User);
+            userTags = await UserService.GetUserTags(user.Id_User);
+        }
+>>>>>>> c4ab2bf (Ficheiros alterados)
     }
 
     private async Task InitializeAsync()
@@ -338,7 +351,16 @@
     }
     protected override async Task OnParametersSetAsync()
     {
+<<<<<<< HEAD
         if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
+=======
+        var selected = e.Value?.ToString();
+
+        currentFeedMode = selected == "global" ? FeedMode.Global : FeedMode.Following;
+
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+        if (emailUser != null)
+>>>>>>> c4ab2bf (Ficheiros alterados)
         {
             listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
             await EnrichRecipes(listPosts);
@@ -347,7 +369,37 @@
 
     private async Task ChangeFeedMode(FeedMode mode)
     {
+<<<<<<< HEAD
         if (currentFeedMode == mode)
+=======
+        if (currentFeedMode != mode)
+        {
+            currentFeedMode = mode;
+
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (emailUser != null)
+            {
+                await LoadFeed(emailUser);
+            }
+        }
+    }
+
+    private void GoToCreateGroup()
+    {
+        NavigationManager.NavigateTo("/grouppage");
+    }
+
+    private void GoToSearchGroups()
+    {
+        NavigationManager.NavigateTo("/searchgroup");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (string.IsNullOrEmpty(email))
+>>>>>>> c4ab2bf (Ficheiros alterados)
             return;
 
         currentFeedMode = mode;

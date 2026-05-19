@@ -100,14 +100,16 @@
                     <i class="bi bi-gear"></i>A minha conta
 
                 </NavLink>
-               <a class="nav-link"
-                   href="javascript:void(0)"
-                   @onclick="Logout"
-                   style="border-top: 1px solid #e2e2e2; cursor: pointer;">
+                <a class="nav-link" href="javascript:void(0)" @onclick="Logout" style="border-top: 1px solid #e2e2e2; cursor: pointer;">
+
+                <NavLink class="nav-link"
+                         href=""
+                         style="border-top: 1px solid #e2e2e2;"
+                         Match="NavLinkMatch.All">
 
                     <i class="bi bi-door-open"></i>Sair
 
-              </a>
+                </a>
 
             </div>
 
@@ -205,18 +207,44 @@
         filteredResults = searchResults;
 
         // USUÁRIO LOGADO
+<<<<<<< HEAD
         string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
+=======
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+>>>>>>> 441ce98 (Corrigir barra de busca)
 
         if (emailUser != null)
         {
             user = await UserService.GetUserInfo(emailUser);
         }
-      }
+    }
 
+<<<<<<< HEAD
   private void NavigateToProfile()
 {
     var profileUrl = "/profilepage";
     NavigationManager.NavigateTo(profileUrl);
+=======
+    private void NavigateToProfile()
+    {
+        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
+        NavigationManager.NavigateTo(profileUrl);
+
+        // Forçar o refresh da página após a navegação
+        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
+
+    private async Task Logout()
+    {
+        // Limpa o session storage e marca o utilizador como não autenticado
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+            .MarkUserAsLoggedOut();
+
+        // Redireciona para a barra (raiz da aplicação)
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+>>>>>>> 441ce98 (Corrigir barra de busca)
 
     JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
 }
