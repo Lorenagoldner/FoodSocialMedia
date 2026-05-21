@@ -63,7 +63,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("email");
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserService.GetUserByEmail(email);
 
         // Get group details
@@ -78,7 +78,7 @@ else
 
     private async Task LeaveGroup()
     {
-        var email = await sessionStorage.GetItemAsync<string>("email");
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserService.GetUserByEmail(email);
 
         bool success = await GroupService.RemoveUserFromGroup(user.Id_User, GroupId);
@@ -90,7 +90,7 @@ else
 
     private async Task DeleteGroup()
     {
-        var email = await sessionStorage.GetItemAsync<string>("email");
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserService.GetUserByEmail(email);
 
         bool isAdmin = await GroupService.IsUserAdmin(user.Id_User, GroupId);

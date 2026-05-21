@@ -252,7 +252,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var email = await sessionStorage.GetItemAsync<string>("email");
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (string.IsNullOrEmpty(email))
         {
@@ -431,10 +431,24 @@ else
 
     private async Task PreviewUserByEmail()
     {
-        userPreview = await UserService.GetUserByEmail(emailToAdd);
-        if (userPreview == null)
+        ErrorMessage = "";
+        userPreview = null;
+
+        var user = await UserService.GetUserByEmail(emailToAdd);
+
+        if (user == null)
         {
-            ErrorMessage = $"No user found with email: {emailToAdd}";
+            ErrorMessage = "User not found.";
+            return;
+        }
+
+        userPreview = user;
+
+        bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, groupIdToAddUser);
+        if (isUserInGroup)
+        {
+            ErrorMessage = "This user is already in the group.";
+            userPreview = null;
         }
     }
 

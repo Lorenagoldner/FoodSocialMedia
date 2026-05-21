@@ -54,7 +54,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+        var email = await SessionStorage.GetItemAsync<string>("userEmail");
         user = await UserService.GetUserByEmail(email);
         if (user != null)
         {
@@ -84,7 +84,7 @@
     {
         try
         {
-            var email = await SessionStorage.GetItemAsync<string>("emailAddress");
+            var email = await SessionStorage.GetItemAsync<string>("userEmail");
             var currentUser = await UserService.GetUserByEmail(email);
 
             if (!string.IsNullOrWhiteSpace(previewPhoto))

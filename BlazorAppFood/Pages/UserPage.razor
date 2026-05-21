@@ -253,11 +253,34 @@
                 {
                     <div class="profile-form">
                         <div class="profile-photo-section">
-                            <img src="@user.UserPhoto" class="profile-photo" />
+                            <img src="@(pendingPhoto ?? user.UserPhoto)" class="profile-photo" />
+                            @if (pendingPhoto != null)
+                            {
+                                <p class="text-muted mt-1" style="font-size: 0.85rem;">
+                                    Pré-visualização — ainda não foi guardada.
+                                </p>
+                            }
                         </div>
                         <div class="form-group mt-2">
                             <label>Adicionar/Alterar Foto</label>
                             <InputFile OnChange="HandleSelectedPhoto" />
+
+                            @if (pendingPhoto != null)
+                            {
+                                <div class="mt-2" style="display: flex; gap: 0.5rem;">
+                                    <button class="save-btn" @onclick="SavePhoto" disabled="@isSavingPhoto">
+                                        @(isSavingPhoto ? "A guardar..." : "Guardar Foto")
+                                    </button>
+                                    <button class="edit-btn" @onclick="CancelPhoto" disabled="@isSavingPhoto">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(photoFeedback))
+                            {
+                                <p class="mt-2" style="font-size: 0.9rem;">@photoFeedback</p>
+                            }
                         </div>
 
                         @if (isEditing)
@@ -408,6 +431,11 @@
     bool isEditingName = false;
     bool isEditingEmail = false;
     bool isEditingPassword = false;
+
+    // Estado da foto pendente (selecionada mas ainda não guardada na BD)
+    string pendingPhoto = null;
+    bool isSavingPhoto = false;
+    string photoFeedback = null;
     private int grupoSelecionadoParaEditar;
     private int grupoSelecionadoParaEliminar;
     private bool mostrarModalEditar = false;
@@ -474,6 +502,8 @@
 
     async Task HandleSelectedPhoto(InputFileChangeEventArgs e)
     {
+        // Carrega o ficheiro mas NÃO grava na BD ainda — só cria a pré-visualização.
+        // A escrita acontece em SavePhoto, quando o utilizador carrega no botão.
         var file = e.File;
         if (file != null)
         {
@@ -482,14 +512,43 @@
             await stream.CopyToAsync(ms);
             var bytes = ms.ToArray();
             var base64 = Convert.ToBase64String(bytes);
-            user.UserPhoto = $"data:{file.ContentType};base64,{base64}";
 
-            var result = await UserService.UpdateUser(user);
+            pendingPhoto = $"data:{file.ContentType};base64,{base64}";
+            photoFeedback = null;
+        }
+    }
+
+    async Task SavePhoto()
+    {
+        if (string.IsNullOrEmpty(pendingPhoto)) return;
+
+        isSavingPhoto = true;
+        photoFeedback = null;
+
+        try
+        {
+            var result = await UserService.UpdateUserPhoto(user.Id_User, pendingPhoto);
             if (result)
             {
-                Console.WriteLine("Foto de perfil atualizada.");
+                user.UserPhoto = pendingPhoto;
+                pendingPhoto = null;
+                photoFeedback = "Foto de perfil atualizada.";
+            }
+            else
+            {
+                photoFeedback = "Falha ao atualizar foto de perfil.";
             }
         }
+        finally
+        {
+            isSavingPhoto = false;
+        }
+    }
+
+    void CancelPhoto()
+    {
+        pendingPhoto = null;
+        photoFeedback = null;
     }
 
     public async Task AddFavorite()
