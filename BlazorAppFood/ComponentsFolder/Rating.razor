@@ -1,38 +1,16 @@
 ﻿@using BlazorAppFood.Data
-
 @inject IRecipeService RecipeService
 
 <div class="card">
-
     <div class="card-recipe-header">
-
-        @if (isRated)
+        @for (int i = 1; i <= 5; i++)
         {
-            @for (int i = 1; i <= 5; i++)
-            {
-                if (i <= ratingValue)
-                {
-                    int index = i;
-                    <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star-fill"></i></span>
-                }
-                else
-                {
-                    int index = i;
-                    <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star"></i></span>
-                }
-
-            }
+            int index = i;
+            <span @onclick="@(() => GiveRating(index))">
+                <i class="bi @(index <= ratingValue ? "bi-star-fill" : "bi-star")"></i>
+            </span>
         }
-        else
-        {
-            @for (int i = 1; i <= 5; i++)
-            {
-                int index = i;
-                <span @onclick="@(() => GiveRating(index))"><i class="bi bi-star"></i></span>
-            }
-        }
-    </div>  
-
+    </div>
 </div>
 
 @code {
@@ -43,12 +21,25 @@
     [Parameter]
     public int idUser { get; set; }
 
-    private bool isRated = false;
-    private int ratingValue;
+    private int ratingValue = 0;
+    private int _lastLoadedRecipe = 0;
+    private int _lastLoadedUser = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (idRecipe > 0 && idUser > 0
+            && (idRecipe != _lastLoadedRecipe || idUser != _lastLoadedUser))
+        {
+            _lastLoadedRecipe = idRecipe;
+            _lastLoadedUser = idUser;
+
+            var existingRating = await RecipeService.GetUserRating(idRecipe, idUser);
+            ratingValue = existingRating ?? 0;
+        }
+    }
 
     protected async Task GiveRating(int rating)
     {
-        isRated = true;
         ratingValue = rating;
         await RecipeService.RatingRecipe(idRecipe, idUser, rating);
     }

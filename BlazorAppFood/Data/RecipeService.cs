@@ -354,6 +354,14 @@ namespace BlazorAppFood.Data
             }
 
         }
+        public async Task<int?> GetUserRating(int idRecipe, int idUser)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = "SELECT RatingValue FROM Ratings WHERE Id_Recipe = @IdRecipe AND Id_User = @IdUser";
+                return await conn.ExecuteScalarAsync<int?>(query, new { IdRecipe = idRecipe, IdUser = idUser });
+            }
+        }
 
         // Select Recipe
 
