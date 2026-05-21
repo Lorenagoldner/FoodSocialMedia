@@ -34,6 +34,7 @@ namespace BlazorAppFood
             services.AddServerSideBlazor();
             services.AddSyncfusionBlazor();
             services.AddScoped<IRecipeService, RecipeService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IRegisterService, RegisterService>();
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<IUserService, UserService>();
