@@ -146,6 +146,7 @@ else
     List<Ingredient> allIngredients = new List<Ingredient>();
     List<CategoryWithTags> allCategories = new List<CategoryWithTags>();
     byte[] _fileBytes = null;
+    byte[] _originalImage = null;
     long maxFileSize = 1024 * 1024 * 15;
 
     [Parameter] public int id { get; set; }
@@ -167,6 +168,8 @@ else
             recipe = await RecipeService.Recipe_GetOne(id);
             recipe.Ingredients ??= new List<Ingredient>();
             recipe.Tags ??= new List<Tag>();
+            // Guardar a imagem original para preservar caso o utilizador nao selecione uma nova
+            _originalImage = recipe.Image;
         }
 
         allIngredients = (await RecipeService.IngredientList()).ToList();
@@ -184,6 +187,12 @@ else
 
     protected async Task SaveRecipe()
     {
+        // Se o utilizador nao selecionou uma nova imagem, manter a imagem existente
+        if (_fileBytes == null)
+        {
+            recipe.Image = _originalImage;
+        }
+
         await RecipeService.UpdateRecipe(recipe);
         if (currentUser != null)
         {
