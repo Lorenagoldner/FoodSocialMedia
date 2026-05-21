@@ -25,52 +25,87 @@
             </div>
 
             <!-- FORM -->
-            <EditForm Model="@user" OnValidSubmit="MakeNewRegist">
+            <EditForm Model="@registerRequest" OnValidSubmit="@MakeNewRegist">
+                <DataAnnotationsValidator />
 
                 <div class="modal-body">
 
+                    <!-- USERNAME -->
                     <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <InputText class="form-control"
-                                   @bind-Value="user.Username" />
+                        <label for="inputUsername" class="form-label">
+                            Username
+                        </label>
+
+                        <InputText @bind-Value="registerRequest.Username"
+                                   class="form-control"
+                                   id="inputUsername" />
+
+                        <ValidationMessage For="@(() => registerRequest.Username)"
+                                           class="text-danger" />
                     </div>
 
+                    <!-- EMAIL -->
                     <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <InputText class="form-control"
-                                   @bind-Value="user.Email" />
+                        <label for="inputEmail" class="form-label">
+                            Endereço de Email
+                        </label>
+
+                        <InputText @bind-Value="registerRequest.Email"
+                                   class="form-control"
+                                   id="inputEmail" />
+
+                        <ValidationMessage For="@(() => registerRequest.Email)"
+                                           class="text-danger" />
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <InputText class="form-control"
+                        <label for="inputPassword" class="form-label">
+                            Password
+                        </label>
+
+                        <InputText @bind-Value="registerRequest.Password"
                                    type="password"
-                                   @bind-Value="user.Password" />
+                                   class="form-control"
+                                   id="inputPassword" />
+
+                        <ValidationMessage For="@(() => registerRequest.Password)"
+                                           class="text-danger" />
                     </div>
 
+                    <!-- CONFIRM PASSWORD -->
                     <div class="mb-3">
-                        <label class="form-label">Repetir Password</label>
-                        <input type="password" class="form-control" />
+                        <label for="inputConfirmPassword" class="form-label">
+                            Repetir Password
+                        </label>
+
+                        <InputText @bind-Value="registerRequest.ConfirmPassword"
+                                   type="password"
+                                   class="form-control"
+                                   id="inputConfirmPassword" />
+
+                        <ValidationMessage For="@(() => registerRequest.ConfirmPassword)"
+                                           class="text-danger" />
                     </div>
 
-                    @if (showErrorRegister)
+                    @if (!string.IsNullOrEmpty(errorMessage))
                     {
                         <div class="alert alert-danger">
-                            Erro ao registar utilizador
+                            @errorMessage
                         </div>
                     }
 
                 </div>
 
-                <!-- FOOTER -->
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-dark">
-                        Registar
+                        Registe-se
                     </button>
+
+                    <span>Já está registado?</span>
                 </div>
 
             </EditForm>
-
         </div>
     </div>
 </div>
@@ -81,14 +116,16 @@
 }
 @code {
 
-    private User user = new User();
-    private bool showErrorRegister = false;
+    public RegisterRequest registerRequest = new RegisterRequest();
+
+    public string errorMessage = "";
+
     private bool isOpen = false;
 
     public void OpenModal()
     {
         isOpen = true;
-        showErrorRegister = false;
+        errorMessage = "";
         StateHasChanged();
     }
 
@@ -100,36 +137,61 @@
 
     public async Task MakeNewRegist()
     {
-        bool success = await RegisterService.CreateRegist(
-            user.Username,
-            user.Email,
-            user.Password);
+        errorMessage = "";
 
-        if (success)
+        
+        bool emailJaExiste =
+            await RegisterService.EmailExists(registerRequest.Email);
+
+        if (emailJaExiste)
         {
-            bool loginSuccess = await LoginService.LogUser(
-                user.Email,
-                user.Password);
+            errorMessage =
+                "An account with this email already exists. Try logging in.";
 
-            if (loginSuccess)
-            {
-                ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
-                    .MarkUserAsAuthenticated(user.Email);
-
-                await sessionStorage.SetItemAsync("userEmail", user.Email);
-
-                isOpen = false;
-
-                NavigationManager.NavigateTo("/welcome");
-            }
-            else
-            {
-                showErrorRegister = true;
-            }
+            return;
         }
-        else
+
+  
+        bool success =
+            await RegisterService.CreateRegist(
+                registerRequest.Username,
+                registerRequest.Email,
+                registerRequest.Password
+            );
+
+        if (!success)
         {
-            showErrorRegister = true;
+            errorMessage =
+                "Error creating account. Please try again.";
+
+            return;
         }
+
+        bool loginSuccess =
+            await LoginService.LogUser(
+                registerRequest.Email,
+                registerRequest.Password
+            );
+
+        if (!loginSuccess)
+        {
+            errorMessage =
+                "Account created, but automatic login failed. Please log in manually.";
+
+            return;
+        }
+
+        ((CustomAuthenticationStateProvider)
+            AuthenticationStateProvider)
+            .MarkUserAsAuthenticated(registerRequest.Email);
+
+        await sessionStorage.SetItemAsync(
+            "userEmail",
+            registerRequest.Email
+        );
+
+        isOpen = false;
+
+        NavigationManager.NavigateTo("/welcome");
     }
 }
