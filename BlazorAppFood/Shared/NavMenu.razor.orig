@@ -8,11 +8,8 @@
 @inject Data.IRecipeService RecipeService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-<<<<<<< HEAD
 @inject AuthenticationStateProvider AuthenticationStateProvider
-=======
 
->>>>>>> 979d0ce (Corrigir barra de busca)
 <!--Navbar-->
 <nav class="navbar">
     <div class="container">
@@ -103,11 +100,9 @@
                     <i class="bi bi-gear"></i>A minha conta
 
                 </NavLink>
-<<<<<<< HEAD
                 <a class="nav-link" href="javascript:void(0)" @onclick="Logout" style="border-top: 1px solid #e2e2e2; cursor: pointer;">
-                    <i class="bi bi-door-open"></i>Sair
+                 <i class="bi bi-door-open"></i>Sair
                 </a>
-=======
 
                 <NavLink class="nav-link"
                          href=""
@@ -116,9 +111,6 @@
 
                     <i class="bi bi-door-open"></i>Sair
 
-                </NavLink>
-
->>>>>>> 979d0ce (Corrigir barra de busca)
             </div>
 
         </div>
@@ -172,10 +164,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-<<<<<<< HEAD
         recipes = await RecipeService.RecipeList();
         string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-=======
         // RECEITAS
         var recipes = await RecipeService.GetAllRecipes();
 
@@ -219,8 +209,7 @@
         filteredResults = searchResults;
 
         // USUÁRIO LOGADO
-        string emailUser = await sessionStorage.GetItemAsync<string>("emailAddress");
->>>>>>> 979d0ce (Corrigir barra de busca)
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {
@@ -230,10 +219,14 @@
 
     private void NavigateToProfile()
     {
-        NavigationManager.NavigateTo("/profilepage", true);
+        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
+        NavigationManager.NavigateTo(profileUrl);
+
+        // Forçar o refresh da página após a navegação
+        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
     }
 
-<<<<<<< HEAD
     private async Task Logout()
     {
         // Limpa o session storage e marca o utilizador como não autenticado
@@ -244,22 +237,56 @@
         NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
+    JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
 }
-=======
-    private async Task OnFilter(FilteringEventArgs args)
-    {
->>>>>>> 979d0ce (Corrigir barra de busca)
 
-        string searchText = args.Text?.ToLower() ?? "";
+private async Task OnFilter(FilteringEventArgs args)
+{
+    string searchText = args.Text?.ToLower() ?? "";
 
-        filteredResults = searchResults
-            .Where(x =>
-                (x.Title ?? "")
-                .ToLower()
-                .Contains(searchText))
-            .ToList();
+    filteredResults = searchResults
+        .Where(x =>
+            (x.Title ?? "")
+            .ToLower()
+            .Contains(searchText))
+        .ToList();
 
-        await InvokeAsync(StateHasChanged);
+    await InvokeAsync(StateHasChanged);
+}
+
+private async Task Logout()
+{
+     // Limpa o session storage e marca o utilizador como não autenticado
+    await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+        .MarkUserAsLoggedOut();
+
+    // Redireciona para a barra (raiz da aplicação)
+    NavigationManager.NavigateTo("/", forceLoad: true);
+}
+}
+<style>
+    .ename {
+        display: block !important;
+        opacity: .87;
+        font-size: 16px;
+        margin-top: 8px;
+    }
+
+    .user {
+        opacity: .54;
+        font-size: 14px;
+        margin-top: 5px;
+        margin-bottom: 7px;
+    }
+
+    .custom-plate-icon {
+        background-image: url('/img/857681.png');
+        width: 20px; 
+        height: 20px;
+        display: inline-block;
+        background-size: contain; 
+        background-repeat: no-repeat; 
+        margin-right: 8px;
     }
 
 }
