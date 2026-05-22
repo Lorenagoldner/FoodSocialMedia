@@ -76,18 +76,14 @@
         </div>
 
         <div class="me-2">
-            @if (user != null && user.UserPhoto != null)
-            {
-                <a href="/profilepage">
-                    <img src="@user.UserPhoto" @onclick="NavigateToProfile" alt=""
-                         class="rounded-circle circle-user" width="60" height="60">
-                </a>
-            }
-            else
-            {
-                <img src="img/avatar1.jpg" @onclick="NavigateToProfile" alt=""
+            @* Ramo único: o <img> mantém-se sempre na mesma posição do DOM.
+               Só o atributo `src` muda quando o user carrega, evitando o
+               swap de elementos que causava o flicker do avatar padrão. *@
+            <a href="/profilepage">
+                <img src="@(!string.IsNullOrEmpty(user?.UserPhoto) ? user.UserPhoto : "img/default-avatar.svg")"
+                     alt=""
                      class="rounded-circle circle-user" width="60" height="60">
-            }
+            </a>
         </div>
     </div>
 </nav>
@@ -168,11 +164,9 @@
         }
     }
 
-    private void NavigateToProfile()
-    {
-        NavigationManager.NavigateTo("/profilepage");
-        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
-    }
+    // NavigateToProfile() removido: o <a href="/profilepage"> já trata da
+    // navegação. O window.location.reload() forçava reload completo, que
+    // re-corria o OnInitializedAsync e era a causa principal do flicker.
 
     private async Task OnFilter(FilteringEventArgs args)
     {

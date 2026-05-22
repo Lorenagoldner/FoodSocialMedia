@@ -229,7 +229,10 @@
         <div class="settings-container">
             <div class="sidebar">
                 <div class="user-summary text-center mb-3">
-                    <img src="@(!string.IsNullOrWhiteSpace(user.UserPhoto) ? user.UserPhoto : "https://via.placeholder.com/100")"
+                    @* via.placeholder.com foi descontinuado em 2024 — usar o
+                       mesmo avatar default que a NavMenu para ser consistente.
+                       default-avatar.svg é uma silhueta genérica, não uma pessoa real. *@
+                    <img src="@(!string.IsNullOrWhiteSpace(user.UserPhoto) ? user.UserPhoto : "img/default-avatar.svg")"
                          class="profile-photo" />
                     <p class="mt-2"><strong>@user.Username</strong></p>
                 </div>
@@ -253,7 +256,8 @@
                 {
                     <div class="profile-form">
                         <div class="profile-photo-section">
-                            <img src="@(pendingPhoto ?? user.UserPhoto)" class="profile-photo" />
+                            @* Preview: prioriza upload pendente, depois foto guardada, depois default. *@
+                            <img src="@(pendingPhoto ?? (string.IsNullOrWhiteSpace(user.UserPhoto) ? "img/default-avatar.svg" : user.UserPhoto))" class="profile-photo" />
                             @if (pendingPhoto != null)
                             {
                                 <p class="text-muted mt-1" style="font-size: 0.85rem;">
