@@ -37,6 +37,7 @@ namespace BlazorAppFood
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("FoodSocialMediaDB")));
             services.AddScoped<IRecipeService, RecipeService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IRegisterService, RegisterService>();
             services.AddScoped<ILoginService, LoginService>();
             services.AddScoped<IUserService, UserService>();
