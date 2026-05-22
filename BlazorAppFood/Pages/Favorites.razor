@@ -1,9 +1,9 @@
 ﻿@page "/favorites"
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
-@inject IRecipeService RecipeService
-@inject IUserService UserService
+@inject IRecipeRepository RecipeRepository
+@inject IUserRepository UserRepository
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavigationManager
 
@@ -87,8 +87,8 @@
 
         if (!string.IsNullOrEmpty(email))
         {
-            var user = await UserService.GetUserInfo(email);
-            favoriteRecipes = await RecipeService.GetFavoriteRecipes(user.Id_User);
+            var user = await UserRepository.GetUserInfo(email);
+            favoriteRecipes = await RecipeRepository.GetFavoriteRecipes(user.Id_User);
         }
     }
 }

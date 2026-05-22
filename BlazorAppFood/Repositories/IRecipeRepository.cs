@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public interface IRecipeService
+    public interface IRecipeRepository
     {
         Task<bool> CreateRecipe(Recipe recipe);
         Task<IEnumerable<Recipe>> RecipeList();

@@ -3,9 +3,9 @@ using BlazorAppFood.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public interface ITagService
+    public interface ITagRepository
     {
         Task<List<CategoryWithTags>> GetCategoriesWithTags();
         Task<List<Tag>> GetTagsByIds(IEnumerable<int> tagIds);

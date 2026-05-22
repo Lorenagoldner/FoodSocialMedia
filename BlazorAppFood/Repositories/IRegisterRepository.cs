@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public interface IRegisterService
+    public interface IRegisterRepository
     {
         Task<bool> CreateRegist(string Username, string Email, string Password);
         Task<bool> LoginRegist(string Email, string Password);

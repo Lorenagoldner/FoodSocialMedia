@@ -1,12 +1,12 @@
 ﻿@page "/editrecipe/{id:int}"
 
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
-@inject IRecipeService RecipeService
-@inject ITagService TagService
+@using BlazorAppFood.Repositories
+@inject IRecipeRepository RecipeRepository
+@inject ITagRepository TagRepository
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthProvider
-@inject IUserService UserService
+@inject IUserRepository UserRepository
 
 @if (recipe == null)
 {
@@ -164,27 +164,27 @@ else
         }
         else
         {
-            recipe = await RecipeService.Recipe_GetOne(id);
+            recipe = await RecipeRepository.Recipe_GetOne(id);
             recipe.Ingredients ??= new List<Ingredient>();
             recipe.Tags ??= new List<Tag>();
         }
 
-        allIngredients = (await RecipeService.IngredientList()).ToList();
-        allCategories = await TagService.GetCategoriesWithTags();
+        allIngredients = (await RecipeRepository.IngredientList()).ToList();
+        allCategories = await TagRepository.GetCategoriesWithTags();
 
         var authState = await AuthProvider.GetAuthenticationStateAsync();
         var userEmail = authState.User.Identity?.Name;
 
         if (!string.IsNullOrEmpty(userEmail))
         {
-            currentUser = await UserService.GetUserByEmail(userEmail);
+            currentUser = await UserRepository.GetUserByEmail(userEmail);
             userId = currentUser.Id_User;
         }
     }
 
     protected async Task SaveRecipe()
     {
-        await RecipeService.UpdateRecipe(recipe);
+        await RecipeRepository.UpdateRecipe(recipe);
         if (currentUser != null)
         {
             NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");

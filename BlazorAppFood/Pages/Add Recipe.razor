@@ -1,10 +1,10 @@
 ﻿@page "/addrecipe"
 @using BlazorAppFood.Models
-@using BlazorAppFood.Data
+@using BlazorAppFood.Repositories
 @using Syncfusion.Blazor.DropDowns
-@inject IRecipeService RecipeService
+@inject IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
-@inject IUserService UserService
+@inject IUserRepository UserRepository
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 <style>
@@ -187,18 +187,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ingredients = await RecipeService.IngredientList();
+        ingredients = await RecipeRepository.IngredientList();
         string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {
-            user = await UserService.GetUserInfo(emailUser);
+            user = await UserRepository.GetUserInfo(emailUser);
 
             recipe.Id_User = user.Id_User;
         }
 
-        categories = await RecipeService.GetAllCategoriesAsync();
-        allTags = await RecipeService.GetAllTagsAsync();
+        categories = await RecipeRepository.GetAllCategoriesAsync();
+        allTags = await RecipeRepository.GetAllTagsAsync();
     }
 
     protected async Task CreateRecipe()
@@ -208,7 +208,7 @@
                 .Select(tag => tag.IdTag)
                 .ToList();
 
-        await RecipeService.CreateRecipe(recipe);
+        await RecipeRepository.CreateRecipe(recipe);
         NavigationManager.NavigateTo("/feed");
     }
 

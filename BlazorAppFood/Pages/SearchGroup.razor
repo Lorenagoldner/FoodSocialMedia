@@ -1,12 +1,12 @@
 ﻿@page "/searchgroup"
-@using BlazorAppFood.Data
-@using BlazorAppFood.Models
-@using Blazored.SessionStorage
 @using System.Security.Claims
+@using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
+@using Blazored.SessionStorage
 
 @inject ISessionStorageService sessionStorage
-@inject IUserService UserService
-@inject IGroupService GroupService
+@inject IUserRepository UserRepository
+@inject IGroupRepository GroupRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
@@ -82,15 +82,15 @@
             var email = user.FindFirstValue(ClaimTypes.Name); 
             if (!string.IsNullOrEmpty(email))
             {
-                var currentUser = await UserService.GetUserByEmail(email);
+                var currentUser = await UserRepository.GetUserByEmail(email);
                 if (currentUser != null)
                 {
                     userId = currentUser.Id_User;
 
-                    var joinedGroups = await GroupService.GetUserGroups(userId);
+                    var joinedGroups = await GroupRepository.GetUserGroups(userId);
                     userGroupIds = joinedGroups.Select(g => g.Id_Group).ToHashSet();
 
-                    groups = await GroupService.GetAllGroups();
+                    groups = await GroupRepository.GetAllGroups();
                     return;
                 }
             }
@@ -101,10 +101,10 @@
 
     private async Task LeaveGroup(int groupId)
     {
-        await GroupService.RemoveUserFromGroup(userId, groupId);
+        await GroupRepository.RemoveUserFromGroup(userId, groupId);
         await SearchGroups();
 
-        var joinedGroups = await GroupService.GetUserGroups(userId);
+        var joinedGroups = await GroupRepository.GetUserGroups(userId);
         userGroupIds = joinedGroups.Select(g => g.Id_Group).ToHashSet();
     }
 
@@ -112,7 +112,7 @@
 
     private async Task LoadGroups()
     {
-        groups = await GroupService.GetAllGroups();
+        groups = await GroupRepository.GetAllGroups();
     }
 
     private async Task SearchGroups()
@@ -125,7 +125,7 @@
         }
         else
         {
-            groups = await GroupService.SearchGroupsByNameStartingWith(searchQuery);
+            groups = await GroupRepository.SearchGroupsByNameStartingWith(searchQuery);
         }
 
         isLoading = false;
@@ -136,7 +136,7 @@
 
     private async Task JoinGroup(int groupId)
     {
-        await GroupService.AddUserToGroup(userId, groupId);
+        await GroupRepository.AddUserToGroup(userId, groupId);
         await SearchGroups();
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
 

@@ -6,7 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Blazored.SessionStorage;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Auth
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {

@@ -1,9 +1,9 @@
 ﻿@page "/deleterecipe/{id:int}"
 
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
 
-@inject IRecipeService RecipeService
+@inject IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 
 <h1>Apagar Receita</h1>
@@ -43,13 +43,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        recipe = await RecipeService.Recipe_GetOne(id);
+        recipe = await RecipeRepository.Recipe_GetOne(id);
     }
 
     protected async Task Delete()
     {
 
-        await RecipeService.DeleteRecipe(id);
+        await RecipeRepository.DeleteRecipe(id);
         NavigationManager.NavigateTo("/showrecipe");
     }
 

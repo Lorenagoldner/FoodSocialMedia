@@ -1,6 +1,7 @@
-﻿@using BlazorAppFood.Data
+﻿@using BlazorAppFood.Auth
 @using BlazorAppFood.Models
-@inject IRegisterService RegisterService
+@using BlazorAppFood.Repositories
+@inject IRegisterRepository RegisterRepository
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
@@ -99,14 +100,14 @@
 
     public async Task MakeNewRegist()
     {
-        bool success = await RegisterService.CreateRegist(
+        bool success = await RegisterRepository.CreateRegist(
             user.Username,
             user.Email,
             user.Password);
 
         if (success)
         {
-            bool loginSuccess = await RegisterService.LoginRegist(
+            bool loginSuccess = await RegisterRepository.LoginRegist(
                 user.Email,
                 user.Password);
 

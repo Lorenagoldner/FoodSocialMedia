@@ -1,6 +1,6 @@
-﻿@using BlazorAppFood.Data
+﻿@using BlazorAppFood.Repositories
 
-@inject IRecipeService RecipeService
+@inject IRecipeRepository RecipeRepository
 
 <div class="card">
 
@@ -50,6 +50,6 @@
     {
         isRated = true;
         ratingValue = rating;
-        await RecipeService.RatingRecipe(idRecipe, idUser, rating);
+        await RecipeRepository.RatingRecipe(idRecipe, idUser, rating);
     }
 }

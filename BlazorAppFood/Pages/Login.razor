@@ -1,6 +1,7 @@
-﻿@using BlazorAppFood.Data
+﻿@using BlazorAppFood.Auth
 @using BlazorAppFood.Models
-@inject ILoginService LoginService
+@using BlazorAppFood.Repositories
+@inject ILoginRepository LoginRepository
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
@@ -93,7 +94,7 @@
 
     public async Task LoginUser()
     {
-        bool userIsValidated = await LoginService.LogUser(user.Email, user.Password);
+        bool userIsValidated = await LoginRepository.LogUser(user.Email, user.Password);
 
         if (userIsValidated)
         {

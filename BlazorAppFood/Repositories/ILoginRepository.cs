@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    interface ILoginService
+    interface ILoginRepository
     {
         Task<bool> LogUser(string Email, string Password);
     }

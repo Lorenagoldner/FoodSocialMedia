@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Services
+namespace BlazorAppFood.Repositories
 {
-    public interface IPostService
+    public interface IPostRepository
     {
         Task<List<Posts>> GetPostsByUserId(int userId);
     }

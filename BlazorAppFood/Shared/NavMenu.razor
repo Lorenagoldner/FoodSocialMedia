@@ -1,8 +1,8 @@
 ﻿@using BlazorAppFood.Models
 @using Syncfusion.Blazor.DropDowns
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject Data.IUserService UserService
-@inject Data.IRecipeService RecipeService
+@inject Repositories.IUserRepository UserRepository
+@inject Repositories.IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 <!--Navbar-->
@@ -113,12 +113,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        recipes = await RecipeService.RecipeList();
+        recipes = await RecipeRepository.RecipeList();
         string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
         if (emailUser != null)
         {
-            user = await UserService.GetUserInfo(emailUser);
+            user = await UserRepository.GetUserInfo(emailUser);
 
         }
     }

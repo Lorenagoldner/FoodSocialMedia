@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Dapper;
 using BlazorAppFood.Models;
+using BlazorAppFood.Configuration;
 
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class ChatService : IChatService
+    public class ChatRepository : IChatRepository
     {
         private readonly SqlConnectionConfiguration _configuration;
 
-        public ChatService(SqlConnectionConfiguration configuration)
+        public ChatRepository(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
         }

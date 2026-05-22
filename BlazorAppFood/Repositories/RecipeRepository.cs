@@ -7,14 +7,15 @@ using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using BlazorAppFood.Configuration;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class RecipeService : IRecipeService
+    public class RecipeRepository : IRecipeRepository
     {
         //Database Connection
         private readonly SqlConnectionConfiguration _configuration;
-        public RecipeService(SqlConnectionConfiguration configuration)
+        public RecipeRepository(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
         }

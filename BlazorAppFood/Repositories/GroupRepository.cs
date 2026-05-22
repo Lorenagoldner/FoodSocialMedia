@@ -5,14 +5,15 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BlazorAppFood.Configuration;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class GroupService : IGroupService
+    public class GroupRepository : IGroupRepository
     {
         private readonly SqlConnectionConfiguration _configuration;
 
-        public GroupService(SqlConnectionConfiguration configuration)
+        public GroupRepository(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
         }

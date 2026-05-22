@@ -1,5 +1,5 @@
 ﻿using BlazorAppFood.Models;
-using BlazorAppFood.Data;
+using BlazorAppFood.Repositories;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -8,13 +8,13 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Services
+namespace BlazorAppFood.Repositories
 {
-    public class PostService : IPostService
+    public class PostRepository : IPostRepository
     {
         private readonly IConfiguration _configuration;
 
-        public PostService(IConfiguration configuration)
+        public PostRepository(IConfiguration configuration)
         {
             _configuration = configuration;
         }

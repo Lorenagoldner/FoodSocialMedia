@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using BlazorAppFood.Models;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    interface IChatService
+    interface IChatRepository
     {
         Task<int> CreateComment(int idRecipe, int idUser, string message);
 
