@@ -245,13 +245,14 @@ namespace BlazorAppFood.Data
                     try
                     {
                         // Update basic Recipe fields
+                        // [Image] = COALESCE(@Image, [Image]) -> se @Image for null, mantem a imagem existente
                         const string updateRecipeQuery = @"
-                    UPDATE Recipe 
-                    SET NameRecipe = @NameRecipe, 
-                        Prep_Time = @Prep_Time, 
-                        Cook_Time = @Cook_Time, 
-                        Preparation = @Preparation, 
-                        [Image] = @Image 
+                    UPDATE Recipe
+                    SET NameRecipe = @NameRecipe,
+                        Prep_Time = @Prep_Time,
+                        Cook_Time = @Cook_Time,
+                        Preparation = @Preparation,
+                        [Image] = COALESCE(@Image, [Image])
                     WHERE Id_Recipe = @Id_Recipe";
 
                         await conn.ExecuteAsync(updateRecipeQuery, new
