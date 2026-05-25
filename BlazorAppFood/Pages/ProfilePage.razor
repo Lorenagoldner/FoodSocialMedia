@@ -1,17 +1,16 @@
 ﻿@page "/ProfilePage/{userId:int?}"
 
-@inject IUserService UserService
-@inject IRecipeService RecipeService
-@inject IPostService PostService
-@inject IGroupService GroupService
+@inject IUserRepository UserRepository
+@inject IRecipeRepository RecipeRepository
+@inject IPostRepository PostRepository
+@inject IGroupRepository GroupRepository
 @inject AuthenticationStateProvider AuthProvider
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject IChatService ChatService
+@inject IChatRepository ChatRepository
 
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
-@using BlazorAppFood.Services
+@using BlazorAppFood.Repositories
 @using Microsoft.AspNetCore.Components.Authorization
 
 
@@ -343,40 +342,40 @@ else
         {
             if (!string.IsNullOrEmpty(userEmail))
             {
-                currentUser = await UserService.GetUserByEmail(userEmail);
-                user = await UserService.GetUserByEmail(userEmail);
-                followerCount = await UserService.GetFollowerCount(user.Id_User);
+                currentUser = await UserRepository.GetUserByEmail(userEmail);
+                user = await UserRepository.GetUserByEmail(userEmail);
+                followerCount = await UserRepository.GetFollowerCount(user.Id_User);
                 isOwnProfile = true;
             }
         }
         else
         {
-            user = await UserService.GetUserById(userId.Value);
+            user = await UserRepository.GetUserById(userId.Value);
 
             if (!string.IsNullOrEmpty(userEmail))
             {
-                currentUser = await UserService.GetUserByEmail(userEmail);
+                currentUser = await UserRepository.GetUserByEmail(userEmail);
                 isOwnProfile = (user?.Id_User == currentUser?.Id_User);
 
                 if (!isOwnProfile && user != null && currentUser != null)
                 {
-                    isFollowing = await UserService.IsFollowing(currentUser.Id_User, user.Id_User);
+                    isFollowing = await UserRepository.IsFollowing(currentUser.Id_User, user.Id_User);
                 }
 
                 if (user != null)
             {
-                followerCount = await UserService.GetFollowerCount(user.Id_User);
+                    followerCount = await UserRepository.GetFollowerCount(user.Id_User);
             }
             }
         }
 
         if (user != null)
         {
-            recipes = (await RecipeService.GetRecipesByUserId(user.Id_User)).ToList();
-            posts = await PostService.GetPostsByUserId(user.Id_User);
+            recipes = (await RecipeRepository.GetRecipesByUserId(user.Id_User)).ToList();
+            posts = await PostRepository.GetPostsByUserId(user.Id_User);
 
-            followedUsers = await UserService.GetFollowedUsers(user.Id_User);
-            userGroups = await GroupService.GetUserGroups(user.Id_User);
+            followedUsers = await UserRepository.GetFollowedUsers(user.Id_User);
+            userGroups = await GroupRepository.GetUserGroups(user.Id_User);
 
             if (recipes.Any())
             {
@@ -398,7 +397,7 @@ else
         {
             if (currentUser != null && user != null)
             {
-                bool success = await UserService.FollowUser(currentUser.Id_User, user.Id_User);
+                bool success = await UserRepository.FollowUser(currentUser.Id_User, user.Id_User);
 
                 if (success)
                 {
@@ -412,7 +411,7 @@ else
     {
         if (currentUser != null && user != null)
         {
-            bool success = await UserService.UnfollowUser(currentUser.Id_User, user.Id_User);
+            bool success = await UserRepository.UnfollowUser(currentUser.Id_User, user.Id_User);
 
             if (success)
             {

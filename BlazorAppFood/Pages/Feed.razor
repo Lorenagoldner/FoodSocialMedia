@@ -1,13 +1,13 @@
 ﻿@page "/feed"
 @page "/feed/{TagId:int?}"
-@using BlazorAppFood.Models
-@using BlazorAppFood.Data
-@using Blazored.SessionStorage;
 @using BlazorAppFood.ComponentsFolder
+@using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
+@using Blazored.SessionStorage;
 
-@inject IUserService UserService
-@inject IGroupService GroupService
-@inject IRecipeService RecipeService
+@inject IUserRepository UserRepository
+@inject IGroupRepository GroupRepository
+@inject IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
@@ -318,7 +318,7 @@
 
         if (currentFeedMode == FeedMode.Global)
         {
-            listPosts = (await RecipeService.RecipeList()).ToList();
+            listPosts = (await RecipeRepository.RecipeList()).ToList();
         }
         else
         {
@@ -332,8 +332,8 @@
     {
         foreach (var recipe in recipes)
         {
-            recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
-            recipe.FavoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
+            recipe.Tags = await RecipeRepository.GetTagsForRecipe(recipe.Id_Recipe);
+            recipe.FavoriteCount = await RecipeRepository.GetFavoriteCount(recipe.Id_Recipe);
         }
     }
     protected override async Task OnParametersSetAsync()

@@ -1,5 +1,6 @@
-﻿@using BlazorAppFood.Data
-@inject IRecipeService RecipeService
+@using BlazorAppFood.Repositories
+
+@inject IRecipeRepository RecipeRepository
 
 <div class="card">
     <div class="card-recipe-header">
@@ -41,6 +42,6 @@
     protected async Task GiveRating(int rating)
     {
         ratingValue = rating;
-        await RecipeService.RatingRecipe(idRecipe, idUser, rating);
+        await RecipeRepository.RatingRecipe(idRecipe, idUser, rating);
     }
 }

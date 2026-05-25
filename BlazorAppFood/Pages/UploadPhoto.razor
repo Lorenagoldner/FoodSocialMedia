@@ -1,17 +1,17 @@
 @page "/uploadphoto"
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService SessionStorage
-@inject IUserService UserService
-@inject IRecipeService RecipeService
+@inject IUserRepository UserRepository
+@inject IRecipeRepository RecipeRepository
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject IChatService ChatService
+@inject IChatRepository ChatRepository
 
-@using BlazorAppFood.Data
-@using BlazorAppFood.Models
-@using Blazored.SessionStorage
-@using Microsoft.AspNetCore.Components.Forms
 @using System.IO
 @using BlazorAppFood.ComponentsFolder
+@using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
+@using Blazored.SessionStorage
+@using Microsoft.AspNetCore.Components.Forms
 
 
 <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
@@ -55,7 +55,7 @@
     protected override async Task OnInitializedAsync()
     {
         var email = await SessionStorage.GetItemAsync<string>("userEmail");
-        user = await UserService.GetUserByEmail(email);
+        user = await UserRepository.GetUserByEmail(email);
         if (user != null)
         {
             userId = user.Id_User;
@@ -85,13 +85,13 @@
         try
         {
             var email = await SessionStorage.GetItemAsync<string>("userEmail");
-            var currentUser = await UserService.GetUserByEmail(email);
+            var currentUser = await UserRepository.GetUserByEmail(email);
 
             if (!string.IsNullOrWhiteSpace(previewPhoto))
             {
                 currentUser.UserPhoto = previewPhoto;
 
-                var result = await UserService.UpdateUser(currentUser);
+                var result = await UserRepository.UpdateUser(currentUser);
 
                 if (result)
                 {

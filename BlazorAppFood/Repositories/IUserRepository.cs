@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public interface IUserService
+    public interface IUserRepository
     {
         Task<User> GetUserInfo(string emailAddress);
         Task<bool> FollowUser(int currentUserId, int userIdToFollow);

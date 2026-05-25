@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\UserState.cs" />
-    <Compile Remove="Data\WeatherForecast.cs" />
-    <Compile Remove="Data\WeatherForecastService.cs" />
+    <Compile Remove="Repositories\UserState.cs" />
+    <Compile Remove="Repositories\WeatherForecast.cs" />
+    <Compile Remove="Repositories\WeatherForecastService.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,9 +1,9 @@
 ﻿@page "/welcome"
-@using BlazorAppFood.Data
+@using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService SessionStorage
-@inject IUserService UserService
+@inject IUserRepository UserRepository
 
 <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
     <div class="card text-center shadow p-5" style="max-width: 400px;">
@@ -29,7 +29,7 @@
     private async Task Continue()
     {
         var email = await SessionStorage.GetItemAsync<string>("userEmail");
-        var user = await UserService.GetUserByEmail(email);
+        var user = await UserRepository.GetUserByEmail(email);
 
         if (user != null)
         {

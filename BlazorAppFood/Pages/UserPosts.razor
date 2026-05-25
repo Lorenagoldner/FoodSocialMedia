@@ -1,10 +1,10 @@
 ﻿@page "/userposts"
 @using BlazorAppFood.Models
-@using BlazorAppFood.Data
+@using BlazorAppFood.Repositories
 @using Blazored.SessionStorage;
 
-@inject IRecipeService RecipeService
-@inject IUserService UserService
+@inject IRecipeRepository RecipeRepository
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
@@ -60,10 +60,10 @@
 
         if(emailUser != null)
         {
-            user = await UserService.GetUserInfo(emailUser);
+            user = await UserRepository.GetUserInfo(emailUser);
             int idUser = user.Id_User;
 
-            listRecipes = await RecipeService.RecipesList(idUser);
+            listRecipes = await RecipeRepository.RecipesList(idUser);
         }
 
     }

@@ -6,14 +6,17 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using Blazored.SessionStorage;
+using BlazorAppFood.Configuration;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class RegisterService : IRegisterService
+    public class RegisterRepository : IRegisterRepository
     {
         private readonly SqlConnectionConfiguration _configuration;
         private readonly ISessionStorageService _sessionStorage;
-        public RegisterService(SqlConnectionConfiguration configuration, ISessionStorageService sessionStorage)
+
+        public RegisterRepository(SqlConnectionConfiguration configuration, ISessionStorageService sessionStorage)
         {
             _configuration = configuration;
             _sessionStorage = sessionStorage;

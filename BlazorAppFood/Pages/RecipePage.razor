@@ -1,14 +1,14 @@
 ﻿@page "/recipepage/{IdRecipe}"
-@using BlazorAppFood.Models
-@using BlazorAppFood.Data
-@using Blazored.SessionStorage
 @using BlazorAppFood.ComponentsFolder
+@using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
+@using Blazored.SessionStorage
 
-@inject IRecipeService RecipeService
-@inject IUserService UserService
+@inject IRecipeRepository RecipeRepository
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject IChatService ChatService
+@inject IChatRepository ChatRepository
 
 <style>
     .bg-lightgreen {
@@ -225,19 +225,19 @@
 
         if (emailUser != null)
         {
-            user = await UserService.GetUserInfo(emailUser);
-            recipe = await RecipeService.GetRecipeInfo(Convert.ToInt32(IdRecipe));
-            recipe.Comments = await ChatService.LoadRecipeComments(recipe.Id_Recipe);
+            user = await UserRepository.GetUserInfo(emailUser);
+            recipe = await RecipeRepository.GetRecipeInfo(Convert.ToInt32(IdRecipe));
+            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
             // Buscar info do utilizador por cada comentário
             foreach (var comment in recipe.Comments)
             {
-                var commentUser = await UserService.GetUserById(comment.IdUser);
+                var commentUser = await UserRepository.GetUserById(comment.IdUser);
                 comment.UserName = commentUser?.Username;
                 comment.UserPhoto = commentUser?.UserPhoto;
             }
 
-            isFavorite = await RecipeService.CheckFavorite(recipe.Id_Recipe, user.Id_User);
+            isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
         }
     }
 
@@ -253,13 +253,13 @@
     {
         if (!string.IsNullOrWhiteSpace(newMessage))
         {
-            await ChatService.CreateComment(recipe.Id_Recipe, user.Id_User, newMessage);
-            recipe.Comments = await ChatService.LoadRecipeComments(recipe.Id_Recipe);
+            await ChatRepository.CreateComment(recipe.Id_Recipe, user.Id_User, newMessage);
+            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
             // Atualizar dados dos utilizadores novamente
             foreach (var comment in recipe.Comments)
             {
-                var commentUser = await UserService.GetUserById(comment.IdUser);
+                var commentUser = await UserRepository.GetUserById(comment.IdUser);
                 comment.UserName = commentUser?.Username;
                 comment.UserPhoto = commentUser?.UserPhoto;
             }
@@ -270,9 +270,9 @@
 
     public async Task AddFavorite()
     {
-        await RecipeService.AddFavorite(recipe.Id_Recipe, user.Id_User);
+        await RecipeRepository.AddFavorite(recipe.Id_Recipe, user.Id_User);
 
-        isFavorite = await RecipeService.CheckFavorite(recipe.Id_Recipe, user.Id_User);
+        isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
 
         StateHasChanged();
     }

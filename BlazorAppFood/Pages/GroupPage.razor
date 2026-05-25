@@ -1,8 +1,8 @@
 ﻿@page "/grouppage"
 @using BlazorAppFood.Models
-@using BlazorAppFood.Data
-@inject IGroupService GroupService
-@inject IUserService UserService
+@using BlazorAppFood.Repositories
+@inject IGroupRepository GroupRepository
+@inject IUserRepository UserRepository
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject NavigationManager NavigationManager
 
@@ -260,7 +260,7 @@ else
             return;
         }
 
-        var user = await UserService.GetUserByEmail(email);
+        var user = await UserRepository.GetUserByEmail(email);
 
         if (user == null)
         {
@@ -289,7 +289,7 @@ else
     {
         foreach (var group in userGroups)
         {
-            var members = await GroupService.GetGroupMembers(group.Id_Group);
+            var members = await GroupRepository.GetGroupMembers(group.Id_Group);
             var admins = members.Where(u => u.IsAdmin).Select(u => u.Id_User).ToList();
             adminsByGroup[group.Id_Group] = admins;
         }
@@ -301,14 +301,14 @@ else
     {
         foreach (var group in userGroups)
         {
-            bool isAdmin = await GroupService.IsUserAdmin(currentUserId, group.Id_Group);
+            bool isAdmin = await GroupRepository.IsUserAdmin(currentUserId, group.Id_Group);
             isAdminByGroup[group.Id_Group] = isAdmin;
         }
     }
 
     private async Task LoadGroups()
     {
-        userGroups = await GroupService.GetUserGroups(currentUserId);
+        userGroups = await GroupRepository.GetUserGroups(currentUserId);
 
         foreach (var group in userGroups)
         {
@@ -323,13 +323,13 @@ else
 
     private async Task LoadGroupMembers(int groupId)
     {
-        var members = await GroupService.GetGroupMembers(groupId);
+        var members = await GroupRepository.GetGroupMembers(groupId);
         groupMembers[groupId] = members; // Store members in a dictionary with groupId as the key
     }
 
     private async Task LoadGroupRecipes()
     {
-        groupRecipes = await GroupService.GetGroupRecipes(currentUserId);
+        groupRecipes = await GroupRepository.GetGroupRecipes(currentUserId);
     }
 
     private void ToggleCreateGroupForm()
@@ -349,7 +349,7 @@ else
 
         try
         {
-            int newGroupId = await GroupService.CreateGroup(groupNameInput, currentUserId);
+            int newGroupId = await GroupRepository.CreateGroup(groupNameInput, currentUserId);
 
             // Optional: Invite users
             if (!string.IsNullOrWhiteSpace(inviteEmailsInput))
@@ -358,14 +358,14 @@ else
 
                 foreach (var email in emails)
                 {
-                    var user = await UserService.GetUserByEmail(email);
+                    var user = await UserRepository.GetUserByEmail(email);
                     if (user != null)
                     {
                         // Check if user is already in the group
-                        bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, newGroupId);
+                        bool isUserInGroup = await GroupRepository.IsUserInGroup(user.Id_User, newGroupId);
                         if (!isUserInGroup)
                         {
-                            await GroupService.AddUserToGroup(user.Id_User, newGroupId);
+                            await GroupRepository.AddUserToGroup(user.Id_User, newGroupId);
                         }
                         else
                         {
@@ -405,7 +405,7 @@ else
     {
         try
         {
-            await GroupService.DeleteGroup(groupId, currentUserId);
+            await GroupRepository.DeleteGroup(groupId, currentUserId);
             await LoadGroups();
             await LoadAdminStatus();
         }
@@ -417,7 +417,7 @@ else
 
     private async Task LeaveGroup(int groupId)
     {
-        await GroupService.RemoveUserFromGroup(currentUserId, groupId);
+        await GroupRepository.RemoveUserFromGroup(currentUserId, groupId);
         await LoadGroups();
         await LoadGroupMembers(groupId);
         await LoadAdminStatus();
@@ -425,7 +425,7 @@ else
 
     private async Task ToggleAdminStatus(int userId, int groupId, bool makeAdmin)
     {
-        await GroupService.SetUserAdminStatus(userId, groupId, makeAdmin);
+        await GroupRepository.SetUserAdminStatus(userId, groupId, makeAdmin);
         await LoadGroupMembers(groupId);
     }
 
@@ -464,17 +464,17 @@ else
         try
         {
             // Prevent duplicate user
-            var user = await UserService.GetUserByEmail(emailToAdd);
+            var user = await UserRepository.GetUserByEmail(emailToAdd);
             if (user != null)
             {
-                bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, groupIdToAddUser);
+                bool isUserInGroup = await GroupRepository.IsUserInGroup(user.Id_User, groupIdToAddUser);
                 if (isUserInGroup)
                 {
                     ErrorMessage = $"User {user.Username} is already in the group.";
                 }
                 else
                 {
-                    await GroupService.AddUserToGroup(user.Id_User, groupIdToAddUser);
+                    await GroupRepository.AddUserToGroup(user.Id_User, groupIdToAddUser);
                     await LoadGroups();
                     CloseModal();
                 }
@@ -505,7 +505,7 @@ else
 
     private async Task ConfirmAdminChange()
     {
-        await GroupService.SetUserAdminStatus(pendingUserId, pendingGroupId, pendingMakeAdmin);
+        await GroupRepository.SetUserAdminStatus(pendingUserId, pendingGroupId, pendingMakeAdmin);
         await LoadGroupMembers(pendingGroupId);
         showConfirmAdminChange = false;
     }

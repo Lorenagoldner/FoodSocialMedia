@@ -1,6 +1,7 @@
-﻿@using BlazorAppFood.Data
+﻿@using BlazorAppFood.Auth
 @using BlazorAppFood.Models
-@inject IRegisterService RegisterService
+@using BlazorAppFood.Repositories
+@inject IRegisterRepository RegisterRepository
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage

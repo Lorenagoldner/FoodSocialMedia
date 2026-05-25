@@ -3,8 +3,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject Data.IUserService UserService
-@inject Data.IRecipeService RecipeService
+@inject Repositories.IUserRepository UserRepository
+@inject Repositories.IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -101,87 +101,31 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // ========== PRIMEIRO: carregar o user logado ==========
-        // CRÍTICO: tem de ser o primeiro await. Se ficar no fim e
-        // qualquer await acima falhar, o user.Id_User fica em 0
-        // e os links da NavMenu apontam para /myrecipes/0.
-        try
-        {
-            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-            if (!string.IsNullOrEmpty(emailUser))
-            {
-                user = await UserService.GetUserInfo(emailUser);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro a carregar utilizador logado: {ex.Message}");
-        }
+        recipes = await RecipeRepository.RecipeList();
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
 
-        // ========== DEPOIS: carregar dados de busca ==========
-        // Envolvido em try/catch para que se um dos serviços falhar,
-        // o user logado já está carregado e o resto da NavMenu funciona.
-        try
+        if (emailUser != null)
         {
-            var recipes = await RecipeService.GetAllRecipes();
-            foreach (var recipe in recipes)
-            {
-                searchResults.Add(new SearchResult
-                {
-                    Title = recipe.NameRecipe,
-                    Type = "Recipe",
-                    Route = $"/recipepage/{recipe.Id_Recipe}"
-                });
-            }
+            user = await UserRepository.GetUserInfo(emailUser);
 
-            var tags = await RecipeService.GetAllTagsAsync();
-            foreach (var tag in tags)
-            {
-                searchResults.Add(new SearchResult
-                {
-                    Title = tag.NameTag,
-                    Type = "Tag",
-                    Route = $"/feed/{tag.IdTag}"
-                });
-            }
-
-            var users = await UserService.GetAllUsers();
-            foreach (var item in users)
-            {
-                searchResults.Add(new SearchResult
-                {
-                    Title = item.Username,
-                    Type = "User",
-                    Route = $"/ProfilePage/{item.Id_User}"
-                });
-            }
-
-            filteredResults = searchResults;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro a carregar dados de busca: {ex.Message}");
         }
     }
 
-    // NavigateToProfile() removido: o <a href="/profilepage"> já trata da
-    // navegação. O window.location.reload() forçava reload completo, que
-    // re-corria o OnInitializedAsync e era a causa principal do flicker.
-
-    private async Task OnFilter(FilteringEventArgs args)
+    private void SearchRecipes()
     {
-        string searchText = args.Text?.ToLower() ?? "";
-        filteredResults = searchResults
-            .Where(x => (x.Title ?? "").ToLower().Contains(searchText))
-            .ToList();
-        await InvokeAsync(StateHasChanged);
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            NavigationManager.NavigateTo($"/feed?search={Uri.EscapeDataString(searchText)}");
+        }
     }
-
-    private async Task Logout()
+    private void NavigateToProfile()
     {
-        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
-            .MarkUserAsLoggedOut();
-        NavigationManager.NavigateTo("/", forceLoad: true);
+        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
+        NavigationManager.NavigateTo(profileUrl);
+
+        // Forçar o refresh da página após a navegação
+        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
     }
 }
 

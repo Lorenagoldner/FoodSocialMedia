@@ -6,14 +6,15 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BlazorAppFood.Configuration;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class UserService : IUserService
+    public class UserRepository : IUserRepository
     {
         //Database Connection
         private readonly SqlConnectionConfiguration _configuration;
-        public UserService(SqlConnectionConfiguration configuration)
+        public UserRepository(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
         }

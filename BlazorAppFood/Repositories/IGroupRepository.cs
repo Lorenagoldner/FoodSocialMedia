@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public interface IGroupService
+    public interface IGroupRepository
     {
         Task<int> CreateGroup(string name, int userId);
         Task DeleteGroup(int groupId, int requestingUserId);

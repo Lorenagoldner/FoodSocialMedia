@@ -1,9 +1,9 @@
 ﻿@page "/myrecipes/{userId:int}"
 
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
-@inject IRecipeService RecipeService
-@inject IUserService UserService
+@using BlazorAppFood.Repositories
+@inject IRecipeRepository RecipeRepository
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 
 <div class="container">
@@ -82,12 +82,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await UserService.GetUserById(userId);
+        var user = await UserRepository.GetUserById(userId);
 
         if (user != null)
         {
             userName = user.Username;
-            recipe = await RecipeService.GetRecipesByUserId(userId);
+            recipe = await RecipeRepository.GetRecipesByUserId(userId);
         }
         else
         {

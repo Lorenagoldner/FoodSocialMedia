@@ -1,9 +1,9 @@
 ﻿@page "/grouppage/{GroupId:int}"
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
-@inject IGroupService GroupService
-@inject IUserService UserService
+@inject IGroupRepository GroupRepository
+@inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService sessionStorage
 
@@ -64,13 +64,13 @@ else
     protected override async Task OnInitializedAsync()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
-        var user = await UserService.GetUserByEmail(email);
+        var user = await UserRepository.GetUserByEmail(email);
 
         // Get group details
-        group = await GroupService.GetGroupById(GroupId); // Now this method exists
+        group = await GroupRepository.GetGroupById(GroupId); // Now this method exists
 
         // Get group members
-        groupMembers = await GroupService.GetGroupMembers(GroupId);
+        groupMembers = await GroupRepository.GetGroupMembers(GroupId);
 
         // Check if the current user is an admin
         isUserAdmin = groupMembers.Any(m => m.Id_User == user.Id_User && m.IsAdmin);
@@ -79,9 +79,9 @@ else
     private async Task LeaveGroup()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
-        var user = await UserService.GetUserByEmail(email);
+        var user = await UserRepository.GetUserByEmail(email);
 
-        bool success = await GroupService.RemoveUserFromGroup(user.Id_User, GroupId);
+        bool success = await GroupRepository.RemoveUserFromGroup(user.Id_User, GroupId);
         if (success)
         {
             NavigationManager.NavigateTo("/feed"); // Redirect to feed page after leaving
@@ -91,16 +91,16 @@ else
     private async Task DeleteGroup()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
-        var user = await UserService.GetUserByEmail(email);
+        var user = await UserRepository.GetUserByEmail(email);
 
-        bool isAdmin = await GroupService.IsUserAdmin(user.Id_User, GroupId);
+        bool isAdmin = await GroupRepository.IsUserAdmin(user.Id_User, GroupId);
         if (!isAdmin)
         {
             // Optional: You can show a message or handle an error here
             return;
         }
 
-        await GroupService.DeleteGroup(GroupId, user.Id_User); // Delete group
+        await GroupRepository.DeleteGroup(GroupId, user.Id_User); // Delete group
         NavigationManager.NavigateTo("/feed"); // Redirect to feed page after deletion
     }
 }

@@ -1,11 +1,11 @@
 ﻿@page "/selectgroups"
-@inject IGroupService GroupService
+@inject IGroupRepository GroupRepository
 @inject NavigationManager NavigationManager
-@inject IUserService UserService
+@inject IUserRepository UserRepository
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @using System.Security.Claims
-@using BlazorAppFood.Data
 @using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
 
 <h3 class="text-center mt-5">Select your groups</h3>
 
@@ -78,13 +78,13 @@
 
             if (!string.IsNullOrEmpty(email))
             {
-                var currentUser = await UserService.GetUserByEmail(email);
+                var currentUser = await UserRepository.GetUserByEmail(email);
                 if (currentUser != null)
                 {
                     userId = currentUser.Id_User;
 
-                    groups = await GroupService.GetAllGroups();
-                    JoinedGroups = (await GroupService.GetUserGroups(userId)).ToList();
+                    groups = await GroupRepository.GetAllGroups();
+                    JoinedGroups = (await GroupRepository.GetUserGroups(userId)).ToList();
                     userGroupIds = JoinedGroups.Select(g => g.Id_Group).ToHashSet();
                     return;
                 }
@@ -99,7 +99,7 @@
     {
         if (selectedGroupId.HasValue && !userGroupIds.Contains(selectedGroupId.Value))
         {
-            await GroupService.AddUserToGroup(userId, selectedGroupId.Value);
+            await GroupRepository.AddUserToGroup(userId, selectedGroupId.Value);
             var joinedGroup = groups.FirstOrDefault(g => g.Id_Group == selectedGroupId.Value);
             if (joinedGroup != null)
             {
@@ -114,10 +114,10 @@
     {
         if (!string.IsNullOrWhiteSpace(newGroupName))
         {
-            await GroupService.CreateGroup(newGroupName, userId);
+            await GroupRepository.CreateGroup(newGroupName, userId);
             newGroupName = "";
-            groups = await GroupService.GetAllGroups();
-            JoinedGroups = (await GroupService.GetUserGroups(userId)).ToList();
+            groups = await GroupRepository.GetAllGroups();
+            JoinedGroups = (await GroupRepository.GetUserGroups(userId)).ToList();
             userGroupIds = JoinedGroups.Select(g => g.Id_Group).ToHashSet();
         }
     }

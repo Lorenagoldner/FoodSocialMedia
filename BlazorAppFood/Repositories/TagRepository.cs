@@ -1,15 +1,16 @@
 ﻿using Azure;
+using BlazorAppFood.Configuration;
 using BlazorAppFood.Models;
 using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BlazorAppFood.Data
+namespace BlazorAppFood.Repositories
 {
-    public class TagService : ITagService
+    public class TagRepository : ITagRepository
     {
         private readonly SqlConnectionConfiguration _configuration;
-        public TagService(SqlConnectionConfiguration configuration)
+        public TagRepository(SqlConnectionConfiguration configuration)
         {
             _configuration = configuration;
         }

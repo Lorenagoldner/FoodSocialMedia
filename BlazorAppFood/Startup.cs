@@ -1,5 +1,6 @@
-using BlazorAppFood.Data;
-using BlazorAppFood.Services;
+using BlazorAppFood.Auth;
+using BlazorAppFood.Configuration;
+using BlazorAppFood.Repositories;
 using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
@@ -36,15 +37,15 @@ namespace BlazorAppFood
             services.AddSyncfusionBlazor();
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("FoodSocialMediaDB")));
-            services.AddScoped<IRecipeService, RecipeService>();
+            services.AddScoped<IRecipeRepository, RecipeRepository>();
             services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<IRegisterService, RegisterService>();
-            services.AddScoped<ILoginService, LoginService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IChatService, ChatService>();
-            services.AddScoped<IGroupService, GroupService>();
-            services.AddScoped<IPostService, PostService>();
-            services.AddScoped<ITagService, TagService>();
+            services.AddScoped<IRegisterRepository, RegisterRepository>();
+            services.AddScoped<ILoginRepository, LoginRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IGroupRepository, GroupRepository>();
+            services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<ITagRepository, TagRepository>();
 
             services.AddBlazoredSessionStorage();
 
