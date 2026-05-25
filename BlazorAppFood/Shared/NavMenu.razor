@@ -101,31 +101,82 @@
 
     protected override async Task OnInitializedAsync()
     {
-        recipes = await RecipeRepository.RecipeList();
-        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-
-        if (emailUser != null)
+        try
         {
-            user = await UserRepository.GetUserInfo(emailUser);
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (!string.IsNullOrEmpty(emailUser))
+            {
+                user = await UserRepository.GetUserInfo(emailUser);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro a carregar utilizador logado: {ex.Message}");
+        }
 
+        try
+        {
+            var recipes = await RecipeRepository.GetAllRecipes();
+            foreach (var recipe in recipes)
+            {
+                searchResults.Add(new SearchResult
+                {
+                    Title = recipe.NameRecipe,
+                    Type = "Recipe",
+                    Route = $"/recipepage/{recipe.Id_Recipe}"
+                });
+            }
+
+            var tags = await RecipeRepository.GetAllTagsAsync();
+            foreach (var tag in tags)
+            {
+                searchResults.Add(new SearchResult
+                {
+                    Title = tag.NameTag,
+                    Type = "Tag",
+                    Route = $"/feed/{tag.IdTag}"
+                });
+            }
+
+            var users = await UserRepository.GetAllUsers();
+            foreach (var item in users)
+            {
+                searchResults.Add(new SearchResult
+                {
+                    Title = item.Username,
+                    Type = "User",
+                    Route = $"/ProfilePage/{item.Id_User}"
+                });
+            }
+
+            filteredResults = searchResults;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro a carregar dados de busca: {ex.Message}");
         }
     }
 
-    private void SearchRecipes()
-    {
-        if (!string.IsNullOrWhiteSpace(searchText))
-        {
-            NavigationManager.NavigateTo($"/feed?search={Uri.EscapeDataString(searchText)}");
-        }
-    }
     private void NavigateToProfile()
     {
-        var profileUrl = "/profilepage"; // Altere isso conforme o caminho do perfil que deseja
-        NavigationManager.NavigateTo(profileUrl);
-
-        // Forçar o refresh da página após a navegação
-        // Após a navegação, a página será recarregada, ou seja, você pode usar:
+        NavigationManager.NavigateTo("/profilepage");
         JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+    }
+
+    private async Task OnFilter(FilteringEventArgs args)
+    {
+        string searchText = args.Text?.ToLower() ?? "";
+        filteredResults = searchResults
+            .Where(x => (x.Title ?? "").ToLower().Contains(searchText))
+            .ToList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Logout()
+    {
+        await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
+            .MarkUserAsLoggedOut();
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 }
 

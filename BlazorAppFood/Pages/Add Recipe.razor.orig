@@ -1,0 +1,255 @@
+﻿@page "/addrecipe"
+@using BlazorAppFood.Models
+@using BlazorAppFood.Repositories
+@using Syncfusion.Blazor.DropDowns
+@inject IRecipeRepository RecipeRepository
+@inject NavigationManager NavigationManager
+@inject IUserRepository UserRepository
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+
+<style>
+    .accordion-body .form-check-label {
+        font-size: 0.875rem; 
+    }
+</style>
+
+<div class="container">
+
+    <div class="card form-recipe">
+
+        <div class="form-recipe-header">
+            <h1>Publish Recipe</h1>
+        </div>
+
+        <div class="form-recipe-body" id="form-recipe-expand">
+
+            <EditForm Model="@recipe" OnValidSubmit="@CreateRecipe">
+                <div class="row">
+                    <div class="col-8">
+
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <img src="img/title.svg" alt="">
+                            <label for="inputTitle" class="form-label">Title</label>
+                            <input type="text" @bind="recipe.NameRecipe" class="form-control" id="inputTitle" required />
+                        </div>
+
+                        <!-- Directions -->
+                        <div class="mb-3">
+                            <img src="img/mixing.svg" alt="">
+                            <label for="textAreaPreparation" class="form-label"> Directions</label>
+                            <textarea @bind="recipe.Preparation" class="form-control" id="textAreaPreparation" rows="5" placeholder="Dont forget to mention quantities..."></textarea>
+                        </div>
+
+                        <!-- Photo -->
+                        <div class="mb-3">
+                            <img src="img/gallery.svg" alt="">
+                            <label for="imgForm" class="form-label">Photo</label>
+                            <InputFile OnChange="HandleFileSelection" class="form-control" id="imgForm" />
+                        </div>
+
+                        <!-- Prep and Cook time -->
+                        <div class="mb-3">
+                            <!--<img src="img/gallery.svg" alt="">-->
+                            <label for="inputPrepTime" class="form-label">Prep Time</label>
+                            <input type="text" size="30" @bind="recipe.Prep_Time" id="inputPrepTime" class="form-control" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <!--<img src="img/gallery.svg" alt="">-->
+                            <label for="inputCookTime" class="form-label">Cook Time</label>
+                            <input type="text" size="30" @bind="recipe.Cook_Time" id="inputCookTime" class="form-control" required />
+                        </div>
+
+                        <!-- Submit Form Button -->
+                        <!--<button type="submit" class="btn btn-primary" value="Publish" />-->
+                        <button type="submit" class="btn btn-primary"> Publish </button>
+                    </div>
+
+                    <!-- Ingredients -->
+                    <div class="col form-ingredients">
+                        <img src="img/harvest.svg" alt="">
+                        <label for="inputIngredients" class="form-label">Ingredients</label>
+
+                        <div class="row">
+                            <div class="col-10">
+                                @*<input type="text" class="form-control" id="inputIngredients" @bind=@ingredientName>*@
+                                <SfAutoComplete TValue="string" TItem="Ingredient" DataSource="@ingredients" @bind-Value="@ingredientName">
+                                    <AutoCompleteFieldSettings Value="Name"></AutoCompleteFieldSettings>
+                                </SfAutoComplete>
+                            </div>
+
+                            <div class="col">
+                                <button type="button" @onclick="@(() => AddIngredient(ingredientName))">
+                                    <i class="bi bi-plus-circle-fill"></i>
+                                </button>
+
+                            </div>
+                        </div>
+
+
+                        <div class="form-ingredients-content">
+
+                            <ul>
+                                @for (int i = 0; i < recipe.Ingredients.Count; i++)
+                                {
+                                    int index = i;
+
+                                    <li>
+                                        <button type="button" class="btn btn-outline-dark">
+                                            <span class="ingredient-label">
+                                                @recipe.Ingredients[i].Name <span @onclick="@( () => recipe.Ingredients.RemoveAt(index) )">
+                                                    <strong>x</strong>
+                                                </span>
+                                            </span>
+                                        </button>
+                                    </li>
+
+                                }
+                            </ul>
+
+                            <!-- Category Selection -->
+                            <hr />
+                            <label class="form-label">Category</label>
+
+                            <div class="accordion" id="tagAccordion">
+                                @foreach (var category in categories)
+                                {
+                                    var collapseId = $"collapse-{category.IdCategory}";
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading-@category.IdCategory">
+                                            <button class="accordion-button collapsed fw-bold " type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#@collapseId"
+                                                    aria-expanded="false"
+                                                    aria-controls="@collapseId">
+                                                @category.Description
+                                            </button>
+                                        </h2>
+                                        <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="heading-@category.IdCategory" data-bs-parent="#tagAccordion">
+                                            <div class="accordion-body">
+                                                @foreach (var tag in allTags.Where(t => t.IdCategory == category.IdCategory))
+                                                {
+                                                    <div class="form-check">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               id="tag-@tag.IdTag"
+                                                               value="@tag.IdTag"
+                                                               checked="@selectedTagIds.Contains(tag.IdTag)"
+                                                               @onchange="@((ChangeEventArgs e) => ToggleTagSelection(tag.IdTag, e))" />
+                                                        <label class="form-check-label" for="tag-@tag.IdTag">
+                                                            @tag.NameTag
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+    //Create a new, empty Recipe object
+    Recipe recipe = new Recipe();
+    byte[] _fileBytes = null;
+    long maxFileSize = 1024 * 1024 * 15;
+    string ingredientName = "";
+    User user = new User();
+    IEnumerable<Ingredient> ingredients;
+
+    // Tags and Categories
+    List<Category> categories = new();
+    List<Tag> allTags = new();
+    List<Tag> filteredTags = new();
+
+    int selectedCategoryId;
+    List<int> selectedTagIds = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        ingredients = await RecipeRepository.IngredientList();
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (emailUser != null)
+        {
+            user = await UserRepository.GetUserInfo(emailUser);
+
+            recipe.Id_User = user.Id_User;
+        }
+
+        categories = await RecipeRepository.GetAllCategoriesAsync();
+        allTags = await RecipeRepository.GetAllTagsAsync();
+    }
+
+    protected async Task CreateRecipe()
+    {
+        recipe.TagIds = allTags
+                .Where(tag => selectedTagIds.Contains(tag.IdTag))
+                .Select(tag => tag.IdTag)
+                .ToList();
+
+        await RecipeRepository.CreateRecipe(recipe);
+        NavigationManager.NavigateTo("/feed");
+    }
+
+    protected async Task HandleFileSelection(InputFileChangeEventArgs files)
+    {
+        var file = files.File;
+        if (file != null)
+        {
+            using Stream fileStream = file.OpenReadStream(maxFileSize);
+            using MemoryStream ms = new();
+            await fileStream.CopyToAsync(ms);
+            _fileBytes = ms.ToArray();
+
+            recipe.Image = _fileBytes;
+        }
+    }
+
+    private void AddIngredient(string name)
+    {
+        if (name.Trim() != "")
+        {
+            recipe.Ingredients.Add(new Ingredient(name.Trim()));
+            ingredientName = "";
+        }
+
+    }
+
+    private void ToggleTagSelection(int tagId, ChangeEventArgs e)
+    {
+        bool isChecked = (bool)e.Value;
+
+        if (isChecked)
+        {
+            if (!selectedTagIds.Contains(tagId))
+                selectedTagIds.Add(tagId);
+        }
+        else
+        {
+            selectedTagIds.Remove(tagId);
+        }
+    }
+
+
+}

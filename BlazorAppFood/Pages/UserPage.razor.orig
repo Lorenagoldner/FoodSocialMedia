@@ -517,6 +517,9 @@
             var bytes = ms.ToArray();
             var base64 = Convert.ToBase64String(bytes);
 
+<<<<<<< HEAD
+            var result = await UserRepository.UpdateUser(user);
+=======
             pendingPhoto = $"data:{file.ContentType};base64,{base64}";
             photoFeedback = null;
         }
@@ -531,7 +534,8 @@
 
         try
         {
-            var result = await UserRepository.UpdateUserPhoto(user.Id_User, pendingPhoto);
+            var result = await UserService.UpdateUserPhoto(user.Id_User, pendingPhoto);
+>>>>>>> main
             if (result)
             {
                 user.UserPhoto = pendingPhoto;

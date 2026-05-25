@@ -5,7 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject ILoginRepository LoginRepository
+@inject ILoginService LoginService
 
 
 <div class="modal fade @(isOpen ? "show d-block" : "")"
@@ -138,23 +138,36 @@
 
     public async Task MakeNewRegist()
     {
+<<<<<<< HEAD
+        bool success = await RegisterRepository.CreateRegist(
+            user.Username,
+            user.Email,
+            user.Password);
+=======
         errorMessage = "";
+>>>>>>> main
 
         
         bool emailJaExiste =
-            await RegisterRepository.EmailExists(registerRequest.Email);
+            await RegisterService.EmailExists(registerRequest.Email);
 
         if (emailJaExiste)
         {
+<<<<<<< HEAD
+            bool loginSuccess = await RegisterRepository.LoginRegist(
+                user.Email,
+                user.Password);
+=======
             errorMessage =
                 "An account with this email already exists. Try logging in.";
+>>>>>>> main
 
             return;
         }
 
   
         bool success =
-            await RegisterRepository.CreateRegist(
+            await RegisterService.CreateRegist(
                 registerRequest.Username,
                 registerRequest.Email,
                 registerRequest.Password
@@ -169,7 +182,7 @@
         }
 
         bool loginSuccess =
-            await LoginRepository.LogUser(
+            await LoginService.LogUser(
                 registerRequest.Email,
                 registerRequest.Password
             );

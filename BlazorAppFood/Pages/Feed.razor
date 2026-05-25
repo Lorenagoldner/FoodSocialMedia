@@ -299,14 +299,14 @@
         if (string.IsNullOrEmpty(userEmail))
             return;
 
-        user = await UserService.GetUserByEmail(userEmail);
+        user = await UserRepository.GetUserByEmail(userEmail);
 
         if (user == null)
             return;
 
-        userGroups = await GroupService.GetUserGroups(user.Id_User);
-        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
-        userTags = await UserService.GetUserTags(user.Id_User);
+        userGroups = await GroupRepository.GetUserGroups(user.Id_User);
+        RecommendedRecipes = await RecipeRepository.GetMostFavoritedRecipes();
+        userTags = await UserRepository.GetUserTags(user.Id_User);
 
         await LoadFeed();
     }
@@ -322,7 +322,7 @@
         }
         else
         {
-            listPosts = await UserService.GetFollowingRecipes(user.Email);
+            listPosts = await UserRepository.GetFollowingRecipes(user.Email);
         }
 
         await EnrichRecipes(listPosts);
@@ -340,7 +340,7 @@
     {
         if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
         {
-            listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
+            listPosts = await RecipeRepository.GetRecipesByTag(TagId.Value);
             await EnrichRecipes(listPosts);
         }
     }
@@ -366,7 +366,7 @@
 
     public async Task FilterByTag(int tagId)
     {
-        listPosts = await RecipeService.GetRecipesByTag(tagId);
+        listPosts = await RecipeRepository.GetRecipesByTag(tagId);
         await EnrichRecipes(listPosts);
     }
 }
