@@ -1,10 +1,10 @@
-﻿using BlazorAppFood.Models;
+﻿using BCrypt.Net;
+using BlazorAppFood.Models;
+using Blazored.SessionStorage;
 using Dapper;
-using System;
-using System.Collections.Generic;
-using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Linq;
+using System;
+using System.Data;
 using System.Threading.Tasks;
 using Blazored.SessionStorage;
 using BlazorAppFood.Configuration;
@@ -13,7 +13,6 @@ namespace BlazorAppFood.Repositories
 {
     public class RegisterRepository : IRegisterRepository
     {
-        // Database Connection
         private readonly SqlConnectionConfiguration _configuration;
         private readonly ISessionStorageService _sessionStorage;
 
@@ -22,53 +21,35 @@ namespace BlazorAppFood.Repositories
             _configuration = configuration;
             _sessionStorage = sessionStorage;
         }
-
-        // Criação de novo utilizador e retorno do ID
+        public async Task<bool> EmailExists(string email)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                const string query = "SELECT COUNT(1) FROM Users WHERE LOWER(Email) = LOWER(@Email)";
+                int count = await conn.ExecuteScalarAsync<int>(query, new { Email = email });
+                return count > 0;
+            }
+        }
         public async Task<bool> CreateRegist(string Username, string Email, string Password)
         {
-            using (var conn = new SqlConnection(_configuration._value))
-
-            // Inserir Verificações de DB aqui.
-
+            if (await EmailExists(Email))
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("Username", Username, DbType.String);
-                parameters.Add("Email", Email, DbType.String);
-                parameters.Add("Password", Password, DbType.String);
-
-                const string query = @"INSERT INTO Users (Username, Email, Password) VALUES (@Username, @Email, @Password)";
-                await conn.ExecuteAsync(query, new { Username, Email, Password }, commandType: CommandType.Text);
+                return false;
             }
-
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(Password);
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                const string query = @"INSERT INTO Users (Username, Email, Password)
+                    VALUES (@Username, @Email, @Password)";
+                await conn.ExecuteAsync(query, new
+                {
+                    Username,
+                    Email,
+                    Password = hashedPassword
+                });
+            }
             return true;
         }
-        // Suposto log do user:
-        public async Task<bool> LoginRegist(string Email, string Password)
-        {
-
-            using (var conn = new SqlConnection(_configuration._value))
-            {
-                string sQuery = @"Select COUNT(*) from Users Where Email = @Email and Password = @Password";
-                int validation = conn.ExecuteScalar<int>(sQuery,
-                                                         new
-                                                         {
-                                                             Email = Email,
-                                                             Password = Password
-                                                         });
-
-                if (validation == 1)
-                {
-                    // Store email in sessionStorage after successful login
-                    await _sessionStorage.SetItemAsync("userEmail", Email);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
     }
 }
 

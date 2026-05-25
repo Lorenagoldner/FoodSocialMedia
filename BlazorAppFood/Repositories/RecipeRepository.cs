@@ -246,13 +246,14 @@ namespace BlazorAppFood.Repositories
                     try
                     {
                         // Update basic Recipe fields
+                        // [Image] = COALESCE(@Image, [Image]) -> se @Image for null, mantem a imagem existente
                         const string updateRecipeQuery = @"
-                    UPDATE Recipe 
-                    SET NameRecipe = @NameRecipe, 
-                        Prep_Time = @Prep_Time, 
-                        Cook_Time = @Cook_Time, 
-                        Preparation = @Preparation, 
-                        [Image] = @Image 
+                    UPDATE Recipe
+                    SET NameRecipe = @NameRecipe,
+                        Prep_Time = @Prep_Time,
+                        Cook_Time = @Cook_Time,
+                        Preparation = @Preparation,
+                        [Image] = COALESCE(@Image, [Image])
                     WHERE Id_Recipe = @Id_Recipe";
 
                         await conn.ExecuteAsync(updateRecipeQuery, new
@@ -354,6 +355,14 @@ namespace BlazorAppFood.Repositories
                 return 1;
             }
 
+        }
+        public async Task<int?> GetUserRating(int idRecipe, int idUser)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = "SELECT RatingValue FROM Ratings WHERE Id_Recipe = @IdRecipe AND Id_User = @IdUser";
+                return await conn.ExecuteScalarAsync<int?>(query, new { IdRecipe = idRecipe, IdUser = idUser });
+            }
         }
 
         // Select Recipe

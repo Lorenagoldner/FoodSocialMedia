@@ -1,13 +1,13 @@
 ﻿@page "/feed"
 @page "/feed/{TagId:int?}"
-@using BlazorAppFood.ComponentsFolder
 @using BlazorAppFood.Models
-@using BlazorAppFood.Repositories
+@using BlazorAppFood.Data
 @using Blazored.SessionStorage;
+@using BlazorAppFood.ComponentsFolder
 
-@inject IUserRepository UserRepository
-@inject IGroupRepository GroupRepository
-@inject IRecipeRepository RecipeRepository
+@inject IUserService UserService
+@inject IGroupService GroupService
+@inject IRecipeService RecipeService
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
@@ -289,7 +289,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+<<<<<<< HEAD
         await InitializeAsync();
+=======
+        RecommendedRecipes = await RecipeService.GetMostFavoritedRecipes();
+
+        string userEmail = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (userEmail != null)
+        {
+            user = await UserService.GetUserInfo(userEmail);
+            userGroups = await GroupService.GetUserGroups(user.Id_User);
+            userTags = await UserService.GetUserTags(user.Id_User);
+        }
+>>>>>>> c4ab2bf (Ficheiros alterados)
     }
 
     private async Task InitializeAsync()
@@ -318,7 +331,7 @@
 
         if (currentFeedMode == FeedMode.Global)
         {
-            listPosts = (await RecipeRepository.RecipeList()).ToList();
+            listPosts = (await RecipeService.RecipeList()).ToList();
         }
         else
         {
@@ -332,13 +345,22 @@
     {
         foreach (var recipe in recipes)
         {
-            recipe.Tags = await RecipeRepository.GetTagsForRecipe(recipe.Id_Recipe);
-            recipe.FavoriteCount = await RecipeRepository.GetFavoriteCount(recipe.Id_Recipe);
+            recipe.Tags = await RecipeService.GetTagsForRecipe(recipe.Id_Recipe);
+            recipe.FavoriteCount = await RecipeService.GetFavoriteCount(recipe.Id_Recipe);
         }
     }
     protected override async Task OnParametersSetAsync()
     {
+<<<<<<< HEAD
         if (!string.IsNullOrEmpty(userEmail) && TagId.HasValue)
+=======
+        var selected = e.Value?.ToString();
+
+        currentFeedMode = selected == "global" ? FeedMode.Global : FeedMode.Following;
+
+        string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+        if (emailUser != null)
+>>>>>>> c4ab2bf (Ficheiros alterados)
         {
             listPosts = await RecipeService.GetRecipesByTag(TagId.Value);
             await EnrichRecipes(listPosts);
@@ -347,7 +369,37 @@
 
     private async Task ChangeFeedMode(FeedMode mode)
     {
+<<<<<<< HEAD
         if (currentFeedMode == mode)
+=======
+        if (currentFeedMode != mode)
+        {
+            currentFeedMode = mode;
+
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (emailUser != null)
+            {
+                await LoadFeed(emailUser);
+            }
+        }
+    }
+
+    private void GoToCreateGroup()
+    {
+        NavigationManager.NavigateTo("/grouppage");
+    }
+
+    private void GoToSearchGroups()
+    {
+        NavigationManager.NavigateTo("/searchgroup");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var email = await sessionStorage.GetItemAsync<string>("userEmail");
+
+        if (string.IsNullOrEmpty(email))
+>>>>>>> c4ab2bf (Ficheiros alterados)
             return;
 
         currentFeedMode = mode;

@@ -50,5 +50,15 @@ namespace BlazorAppFood.Auth
 
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         }
+
+        public async Task MarkUserAsLoggedOut()
+        {
+            await _sessionStorageService.ClearAsync();
+
+            var identity = new ClaimsIdentity();
+            var user = new ClaimsPrincipal(identity);
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+        }
     }
 }

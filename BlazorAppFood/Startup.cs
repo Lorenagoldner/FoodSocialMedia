@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace BlazorAppFood
 {
@@ -34,7 +35,10 @@ namespace BlazorAppFood
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSyncfusionBlazor();
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("FoodSocialMediaDB")));
             services.AddScoped<IRecipeRepository, RecipeRepository>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IRegisterRepository, RegisterRepository>();
             services.AddScoped<ILoginRepository, LoginRepository>();
             services.AddScoped<IUserRepository, UserRepository>();

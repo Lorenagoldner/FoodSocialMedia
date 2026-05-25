@@ -11,9 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Components\RatingComponent.razor" />
-    <Content Remove="Components\RecipePost.razor" />
-    <Content Remove="Components\SearchComponent.razor" />
     <Content Remove="Pages\AddRecipe.razor" />
     <Content Remove="Pages\Counter.razor" />
     <Content Remove="Pages\FetchData.razor" />
@@ -25,6 +22,11 @@
     <PackageReference Include="Blazored.SessionStorage" Version="1.0.13" />
     <PackageReference Include="Dapper" Version="2.0.78" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.27" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.27">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Syncfusion.Blazor.DropDowns" Version="19.1.0.57" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
@@ -32,30 +34,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\img\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Components\SearchComponent.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="Components\RatingComponent.razor" />
-    <_ContentIncludedByDefault Remove="Components\RecipePost.razor" />
-    <_ContentIncludedByDefault Remove="Components\SearchComponent.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Components\RatingComponent.razor" />
-    <None Include="Components\RecipePost.razor" />
-    <None Include="Components\SearchComponent.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Components\RecipePost.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Components\RatingComponent.razor" />
   </ItemGroup>
 
 </Project>

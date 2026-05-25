@@ -63,34 +63,36 @@ else
 
                 @foreach (var recipe in recipes.OrderByDescending(r => r.PublishedDate))
                 {
-                    <div class="post">
-                        <div class="post-header">
-                            @if (!string.IsNullOrEmpty(user.UserPhoto))
+                    <a href="@($"/recipepage/{recipe.Id_Recipe}")" class="post-link">
+                        <div class="post">
+                            <div class="post-header">
+                                @if (!string.IsNullOrEmpty(user.UserPhoto))
+                                {
+                                    <img src="@user.UserPhoto" class="post-profile" />
+                                }
+                                else
+                                {
+                                    <img src="/images/default-profile.jpg" class="post-profile" alt="Foto padrão" />
+                                }
+
+                                <div>
+                                    <strong>@user.Username</strong><br />
+                                    <small>@recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                            </div>
+
+                            @if (recipe.Image != null)
                             {
-                                <img src="@user.UserPhoto" class="post-profile" />
+                                <img class="post-image" src="data:image/png;base64,@Convert.ToBase64String(recipe.Image)" alt="@recipe.NameRecipe" />
                             }
                             else
                             {
-                                <img src="/images/default-profile.jpg" class="post-profile" alt="Foto padrão" />
+                                <img class="post-image" src="/images/default-recipe.jpg" alt="Imagem não disponível" />
                             }
 
-                            <div>
-                                <strong>@user.Username</strong><br />
-                                <small>@recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")</small>
-                            </div>
+                            <p class="post-title">@recipe.NameRecipe</p>
                         </div>
-
-                        @if (recipe.Image != null)
-                        {
-                            <img class="post-image" src="data:image/png;base64,@Convert.ToBase64String(recipe.Image)" alt="@recipe.NameRecipe" />
-                        }
-                        else
-                        {
-                            <img class="post-image" src="/images/default-recipe.jpg" alt="Imagem não disponível" />
-                        }
-
-                        <p class="post-title">@recipe.NameRecipe</p>
-                    </div>
+                    </a>
                 }
 
             </div>
@@ -206,7 +208,20 @@ else
         background: #f9f9f9;
         padding: 1rem;
         border-radius: 8px;
+        transition: background 0.2s, box-shadow 0.2s;
     }
+
+    .post-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        cursor: pointer;
+    }
+
+        .post-link:hover .post {
+            background: #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
 
     .post-header {
         display: flex;
