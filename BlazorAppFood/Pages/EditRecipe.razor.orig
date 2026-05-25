@@ -187,13 +187,17 @@ else
 
     protected async Task SaveRecipe()
     {
+<<<<<<< HEAD:BlazorAppFood/Pages/Edit Recipe.razor
+        await RecipeRepository.UpdateRecipe(recipe);
+=======
         // Se o utilizador nao selecionou uma nova imagem, manter a imagem existente
         if (_fileBytes == null)
         {
             recipe.Image = _originalImage;
         }
 
-        await RecipeRepository.UpdateRecipe(recipe);
+        await RecipeService.UpdateRecipe(recipe);
+>>>>>>> main:BlazorAppFood/Pages/EditRecipe.razor
         if (currentUser != null)
         {
             NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");

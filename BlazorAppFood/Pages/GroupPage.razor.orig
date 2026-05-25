@@ -431,12 +431,17 @@ else
 
     private async Task PreviewUserByEmail()
     {
+<<<<<<< HEAD
+        userPreview = await UserRepository.GetUserByEmail(emailToAdd);
+        if (userPreview == null)
+=======
         ErrorMessage = "";
         userPreview = null;
 
-        var user = await UserRepository.GetUserByEmail(emailToAdd);
+        var user = await UserService.GetUserByEmail(emailToAdd);
 
         if (user == null)
+>>>>>>> main
         {
             ErrorMessage = "User not found.";
             return;
@@ -444,7 +449,7 @@ else
 
         userPreview = user;
 
-        bool isUserInGroup = await GroupRepository.IsUserInGroup(user.Id_User, groupIdToAddUser);
+        bool isUserInGroup = await GroupService.IsUserInGroup(user.Id_User, groupIdToAddUser);
         if (isUserInGroup)
         {
             ErrorMessage = "This user is already in the group.";

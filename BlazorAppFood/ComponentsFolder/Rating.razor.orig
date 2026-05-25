@@ -1,6 +1,11 @@
-@using BlazorAppFood.Repositories
+<<<<<<< HEAD
+﻿@using BlazorAppFood.Repositories
 
 @inject IRecipeRepository RecipeRepository
+=======
+﻿@using BlazorAppFood.Data
+@inject IRecipeService RecipeService
+>>>>>>> main
 
 <div class="card">
     <div class="card-recipe-header">
@@ -34,7 +39,7 @@
             _lastLoadedRecipe = idRecipe;
             _lastLoadedUser = idUser;
 
-            var existingRating = await RecipeRepository.GetUserRating(idRecipe, idUser);
+            var existingRating = await RecipeService.GetUserRating(idRecipe, idUser);
             ratingValue = existingRating ?? 0;
         }
     }
