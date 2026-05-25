@@ -76,9 +76,6 @@
         </div>
 
         <div class="me-2">
-            @* Ramo único: o <img> mantém-se sempre na mesma posição do DOM.
-               Só o atributo `src` muda quando o user carrega, evitando o
-               swap de elementos que causava o flicker do avatar padrão. *@
             <a href="/profilepage">
                 <img src="@(!string.IsNullOrEmpty(user?.UserPhoto) ? user.UserPhoto : "img/default-avatar.svg")"
                      alt=""
