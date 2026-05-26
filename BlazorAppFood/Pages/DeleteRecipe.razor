@@ -19,11 +19,11 @@
 
 
 @*TEMPO DE PREPARAÇÃO*@
-<p> Tempo de Preparação: @recipe.Prep_Time </p>
+<p> Tempo de Preparação: @TimeFormatter.FormatMinutes(recipe.Prep_Time) </p>
 
 
 @*TEMPO DE COZEDURA*@
-<p> Tempo de Cozedura: @recipe.Cook_Time </p>
+<p> Tempo de Cozedura: @TimeFormatter.FormatMinutes(recipe.Cook_Time) </p>
 
 
 @*PASSO  A PASSO*@
