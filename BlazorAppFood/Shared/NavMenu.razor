@@ -2,6 +2,7 @@
 @using BlazorAppFood.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
+@implements IDisposable
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Repositories.IUserRepository UserRepository
 @inject Repositories.IRecipeRepository RecipeRepository
@@ -98,6 +99,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        NavigationManager.LocationChanged += OnLocationChanged;
+
         try
         {
             string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
@@ -154,10 +157,26 @@
         }
     }
 
-    private void NavigateToProfile()
+    private async void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        NavigationManager.NavigateTo("/profilepage");
-        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
+        try
+        {
+            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
+            if (!string.IsNullOrEmpty(emailUser))
+            {
+                user = await UserRepository.GetUserInfo(emailUser);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro a atualizar avatar: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 
     private async Task OnFilter(FilteringEventArgs args)

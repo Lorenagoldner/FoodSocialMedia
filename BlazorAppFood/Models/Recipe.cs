@@ -11,8 +11,8 @@ namespace BlazorAppFood.Models
         public int Id_User { get; set; }
         public string NameRecipe { get; set; }
         public List<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
-        public string Prep_Time { get; set; }
-        public string Cook_Time { get; set; }
+        public int Prep_Time { get; set; }
+        public int Cook_Time { get; set; }
         public string Preparation { get; set; }
         public byte[] Image { get; set; }
         public string Video { get; set; }

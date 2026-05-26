@@ -61,8 +61,8 @@
                                                 </div>
                                             }
 
-                                            <p><i class="bi bi-hourglass-split"></i> Prep: @recipe.Prep_Time</p>
-                                            <p><i class="bi bi-fire"></i> Cook: @recipe.Cook_Time</p>
+                                            <p><i class="bi bi-hourglass-split"></i> Prep: @TimeFormatter.FormatMinutes(recipe.Prep_Time)</p>
+                                            <p><i class="bi bi-fire"></i> Cook: @TimeFormatter.FormatMinutes(recipe.Cook_Time)</p>
                                         </div>
                                     </div>
                                 </div>

@@ -34,8 +34,8 @@ namespace BlazorAppFood.Repositories
                         var parameters = new DynamicParameters();
                         parameters.Add("Id_User", recipe.Id_User, DbType.Int32);
                         parameters.Add("NameRecipe", recipe.NameRecipe, DbType.String);
-                        parameters.Add("Prep_Time", recipe.Prep_Time, DbType.String);
-                        parameters.Add("Cook_Time", recipe.Cook_Time, DbType.String);
+                        parameters.Add("Prep_Time", recipe.Prep_Time, DbType.Int32);
+                        parameters.Add("Cook_Time", recipe.Cook_Time, DbType.Int32);
                         parameters.Add("Preparation", recipe.Preparation, DbType.String);
                         parameters.Add("Image", recipe.Image, DbType.Binary);
                         parameters.Add("Recipe_Id_Out", 0, DbType.Int32, direction: ParameterDirection.Output);

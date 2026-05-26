@@ -50,15 +50,25 @@
 
                         <!-- Prep and Cook time -->
                         <div class="mb-3">
-                            <!--<img src="img/gallery.svg" alt="">-->
-                            <label for="inputPrepTime" class="form-label">Prep Time</label>
-                            <input type="text" size="30" @bind="recipe.Prep_Time" id="inputPrepTime" class="form-control" required />
+                            <label class="form-label">Prep Time</label>
+                            <div class="input-group">
+                                <input type="number" min="1" max="999" @bind="prepTimeValue" class="form-control" required />
+                                <select class="form-select" @bind="prepTimeUnit" style="max-width: 120px;">
+                                    <option value="min">Minutos</option>
+                                    <option value="h">Horas</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
-                            <!--<img src="img/gallery.svg" alt="">-->
-                            <label for="inputCookTime" class="form-label">Cook Time</label>
-                            <input type="text" size="30" @bind="recipe.Cook_Time" id="inputCookTime" class="form-control" required />
+                            <label class="form-label">Cook Time</label>
+                            <div class="input-group">
+                                <input type="number" min="1" max="999" @bind="cookTimeValue" class="form-control" required />
+                                <select class="form-select" @bind="cookTimeUnit" style="max-width: 120px;">
+                                    <option value="min">Minutos</option>
+                                    <option value="h">Horas</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Submit Form Button -->
@@ -168,7 +178,6 @@
 
 
 @code {
-    //Create a new, empty Recipe object
     Recipe recipe = new Recipe();
     byte[] _fileBytes = null;
     long maxFileSize = 1024 * 1024 * 15;
@@ -176,13 +185,17 @@
     User user = new User();
     IEnumerable<Ingredient> ingredients;
 
-    // Tags and Categories
     List<Category> categories = new();
     List<Tag> allTags = new();
     List<Tag> filteredTags = new();
 
     int selectedCategoryId;
     List<int> selectedTagIds = new();
+
+    private int prepTimeValue = 30;
+    private string prepTimeUnit = "min";
+    private int cookTimeValue = 30;
+    private string cookTimeUnit = "min";
 
 
     protected override async Task OnInitializedAsync()
@@ -203,6 +216,9 @@
 
     protected async Task CreateRecipe()
     {
+        recipe.Prep_Time = prepTimeUnit == "h" ? prepTimeValue * 60 : prepTimeValue;
+        recipe.Cook_Time = cookTimeUnit == "h" ? cookTimeValue * 60 : cookTimeValue;
+
         recipe.TagIds = allTags
                 .Where(tag => selectedTagIds.Contains(tag.IdTag))
                 .Select(tag => tag.IdTag)
