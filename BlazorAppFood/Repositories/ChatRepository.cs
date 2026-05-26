@@ -49,12 +49,28 @@ namespace BlazorAppFood.Repositories
                 //Evita notificar o usuário se ele mesmo for o dono da receita
                 if (recipeOwnerId != idUser)
                 {
+                    string actorQuery = @"SELECT Username 
+                      FROM Users 
+                      WHERE Id_User = @IdUser";
+
+                    string actorName = await conn.ExecuteScalarAsync<string>(
+                        actorQuery,
+                        new { IdUser = idUser });
+
+                    string recipeNameQuery = @"SELECT NameRecipe
+                           FROM Recipe
+                           WHERE Id_Recipe = @IdRecipe";
+
+                    string recipeName = await conn.ExecuteScalarAsync<string>(
+                        recipeNameQuery,
+                        new { IdRecipe = idRecipe });
+
                     await _notificationRepository.CreateNotification(new Notification
                     {
                         RecipientUserId = recipeOwnerId,
                         ActorUserId = idUser,
                         Type = NotificationType.Comment,
-                        Message = "Comentou na tua receita",
+                        Message = $"{actorName} comentou na tua receita {recipeName}",
                         RelatedEntityId = idRecipe,
                         IsRead = false,
                         CreatedAt = DateTime.Now
