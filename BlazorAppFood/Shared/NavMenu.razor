@@ -2,13 +2,13 @@
 @using BlazorAppFood.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
-@implements IDisposable
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Repositories.IUserRepository UserRepository
 @inject Repositories.IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject INotificationRepository NotificationRepository
 
 <!--Navbar-->
 <nav class="navbar">
@@ -76,6 +76,43 @@
             </div>
         </div>
 
+        <div class="dropdown me-3">
+
+            <button class="btn btn-light position-relative">
+
+                🔔
+
+                @if (notifications.Count > 0)
+                {
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        @notifications.Count
+                    </span>
+                }
+
+            </button>
+
+            <div class="dropdown-content list-group">
+
+                @if (notifications.Any())
+                {
+                    @foreach (var notification in notifications.Take(5))
+                    {
+                        <div class="list-group-item">
+                            @notification.Message
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="list-group-item">
+                        Sem notificações
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
         <div class="me-2">
             <a href="/profilepage">
                 <img src="@(!string.IsNullOrEmpty(user?.UserPhoto) ? user.UserPhoto : "img/default-avatar.svg")"
@@ -90,6 +127,8 @@
     private bool collapseNavMenu = true;
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
+    private List<Notification> notifications = new();
+
     public User user = new User();
 
     private List<SearchResult> searchResults = new();
@@ -99,14 +138,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        NavigationManager.LocationChanged += OnLocationChanged;
-
         try
         {
             string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
             if (!string.IsNullOrEmpty(emailUser))
             {
                 user = await UserRepository.GetUserInfo(emailUser);
+                notifications = await NotificationRepository.GetUserNotifications(user.Id_User);
             }
         }
         catch (Exception ex)
@@ -157,26 +195,10 @@
         }
     }
 
-    private async void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private void NavigateToProfile()
     {
-        try
-        {
-            string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
-            if (!string.IsNullOrEmpty(emailUser))
-            {
-                user = await UserRepository.GetUserInfo(emailUser);
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro a atualizar avatar: {ex.Message}");
-        }
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+        NavigationManager.NavigateTo("/profilepage");
+        JSRuntime.InvokeVoidAsync("eval", "window.location.reload();");
     }
 
     private async Task OnFilter(FilteringEventArgs args)
