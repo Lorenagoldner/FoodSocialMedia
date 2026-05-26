@@ -47,8 +47,8 @@
                                                 </a>
                                             </h5>
 
-                                            <p><i class="bi bi-hourglass-split"></i> Prep: @rec.Prep_Time</p>
-                                            <p><i class="bi bi-fire"></i> Cook: @rec.Cook_Time</p>
+                                            <p><i class="bi bi-hourglass-split"></i> Prep: @TimeFormatter.FormatMinutes(rec.Prep_Time)</p>
+                                            <p><i class="bi bi-fire"></i> Cook: @TimeFormatter.FormatMinutes(rec.Cook_Time)</p>
 
                                             <div class="d-flex gap-2 mt-3">
                                                 <button class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/editrecipe/{rec.Id_Recipe}"))">

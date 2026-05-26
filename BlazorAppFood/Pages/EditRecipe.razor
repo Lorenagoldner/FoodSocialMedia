@@ -35,13 +35,25 @@ else
             <!-- Prep Time -->
             <div class="mb-3">
                 <label class="form-label">Tempo de Preparação</label>
-                <InputText class="form-control" @bind-Value="recipe.Prep_Time" required />
+                <div class="input-group">
+                    <input type="number" min="1" max="999" @bind="prepTimeValue" class="form-control" required />
+                    <select class="form-select" @bind="prepTimeUnit" style="max-width: 120px;">
+                        <option value="min">Minutos</option>
+                        <option value="h">Horas</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Cook Time -->
             <div class="mb-3">
                 <label class="form-label">Tempo de Cozedura</label>
-                <InputText class="form-control" @bind-Value="recipe.Cook_Time" required />
+                <div class="input-group">
+                    <input type="number" min="1" max="999" @bind="cookTimeValue" class="form-control" required />
+                    <select class="form-select" @bind="cookTimeUnit" style="max-width: 120px;">
+                        <option value="min">Minutos</option>
+                        <option value="h">Horas</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Step-by-Step Instructions -->
@@ -153,6 +165,11 @@ else
     public int userId { get; set; }
     private User? currentUser;
 
+    private int prepTimeValue = 30;
+    private string prepTimeUnit = "min";
+    private int cookTimeValue = 30;
+    private string cookTimeUnit = "min";
+
     protected override async Task OnInitializedAsync()
     {
         if (id == 0)
@@ -168,8 +185,10 @@ else
             recipe = await RecipeRepository.Recipe_GetOne(id);
             recipe.Ingredients ??= new List<Ingredient>();
             recipe.Tags ??= new List<Tag>();
-            // Guardar a imagem original para preservar caso o utilizador nao selecione uma nova
             _originalImage = recipe.Image;
+
+            (prepTimeValue, prepTimeUnit) = SplitMinutes(recipe.Prep_Time);
+            (cookTimeValue, cookTimeUnit) = SplitMinutes(recipe.Cook_Time);
         }
 
         allIngredients = (await RecipeRepository.IngredientList()).ToList();
@@ -185,13 +204,22 @@ else
         }
     }
 
+    private (int value, string unit) SplitMinutes(int totalMinutes)
+    {
+        if (totalMinutes >= 60 && totalMinutes % 60 == 0)
+            return (totalMinutes / 60, "h");
+        return (totalMinutes, "min");
+    }
+
     protected async Task SaveRecipe()
     {
-        // Se o utilizador nao selecionou uma nova imagem, manter a imagem existente
         if (_fileBytes == null)
         {
             recipe.Image = _originalImage;
         }
+
+        recipe.Prep_Time = prepTimeUnit == "h" ? prepTimeValue * 60 : prepTimeValue;
+        recipe.Cook_Time = cookTimeUnit == "h" ? cookTimeValue * 60 : cookTimeValue;
 
         await RecipeRepository.UpdateRecipe(recipe);
         if (currentUser != null)
