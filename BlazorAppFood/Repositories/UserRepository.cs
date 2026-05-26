@@ -1,12 +1,13 @@
-﻿using BlazorAppFood.Models;
+﻿using BlazorAppFood.Configuration;
+using BlazorAppFood.Data;
+using BlazorAppFood.Models;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using BlazorAppFood.Configuration;
 
 namespace BlazorAppFood.Repositories
 {
@@ -14,9 +15,13 @@ namespace BlazorAppFood.Repositories
     {
         //Database Connection
         private readonly SqlConnectionConfiguration _configuration;
-        public UserRepository(SqlConnectionConfiguration configuration)
+        private readonly INotificationRepository _notificationRepository;
+        public UserRepository(
+            SqlConnectionConfiguration configuration,
+            INotificationRepository notificationRepository)
         {
             _configuration = configuration;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<User> GetUserInfo(string emailAddress)
@@ -45,6 +50,20 @@ namespace BlazorAppFood.Repositories
                     IdUser = userIdToFollow,
                     IdFollower = currentUserId
                 });
+
+                if (affectedRows > 0 && currentUserId != userIdToFollow)
+                {
+                    await _notificationRepository.CreateNotification(new Notification
+                    {
+                        RecipientUserId = userIdToFollow,
+                        ActorUserId = currentUserId,
+                        Type = NotificationType.Follow,
+                        Message = "Começou a seguir-te",
+                        RelatedEntityId = currentUserId,
+                        IsRead = false,
+                        CreatedAt = DateTime.Now
+                    });
+                }
 
                 return affectedRows > 0;
             }
