@@ -6,16 +6,21 @@ using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BlazorAppFood.Configuration;
+using BlazorAppFood.Data;
 
 namespace BlazorAppFood.Repositories
 {
     public class GroupRepository : IGroupRepository
     {
         private readonly SqlConnectionConfiguration _configuration;
+        private readonly INotificationRepository _notificationRepository;
 
-        public GroupRepository(SqlConnectionConfiguration configuration)
+        public GroupRepository(
+            SqlConnectionConfiguration configuration,
+            INotificationRepository notificationRepository)
         {
             _configuration = configuration;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<int> CreateGroup(string name, int userId)
@@ -45,7 +50,7 @@ namespace BlazorAppFood.Repositories
             await conn.ExecuteAsync("DELETE FROM Groups WHERE Id_Group = @GroupId", new { GroupId = groupId });
         }
 
-        public async Task AddUserToGroup(int userId, int groupId)
+        public async Task AddUserToGroup(int userId, int groupId, int actorUserId)
         {
             using var conn = new SqlConnection(_configuration._value);
 
@@ -61,6 +66,28 @@ namespace BlazorAppFood.Repositories
             // If the user is not in the group, add them
             string query = "INSERT INTO Users_Groups (Id_User, Id_Group) VALUES (@UserId, @GroupId)";
             await conn.ExecuteAsync(query, new { UserId = userId, GroupId = groupId });
+
+            string actorName = await conn.ExecuteScalarAsync<string>(
+                "SELECT Username FROM Users WHERE Id_User = @ActorUserId",
+                new { ActorUserId = actorUserId });
+
+            string groupName = await conn.ExecuteScalarAsync<string>(
+                "SELECT Name FROM Groups WHERE Id_Group = @GroupId",
+                new { GroupId = groupId });
+
+            if (userId != actorUserId)
+            {
+                await _notificationRepository.CreateNotification(new Notification
+                {
+                    RecipientUserId = userId,
+                    ActorUserId = actorUserId,
+                    Type = NotificationType.GroupInvite,
+                    Message = $"{actorName} adicionou-te ao grupo {groupName}",
+                    RelatedEntityId = groupId,
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
+            }
         }
 
         public async Task<bool> RemoveUserFromGroup(int userId, int groupId)
@@ -73,11 +100,36 @@ namespace BlazorAppFood.Repositories
             return rowsAffected > 0; // Returns true if the user was successfully removed
         }
 
-        public async Task SetUserAdminStatus(int userId, int groupId, bool isAdmin)
+        public async Task SetUserAdminStatus(int userId, int groupId, bool isAdmin, int actorUserId)
         {
             using var conn = new SqlConnection(_configuration._value);
             string query = "UPDATE Users_Groups SET IsAdmin = @IsAdmin WHERE Id_User = @UserId AND Id_Group = @GroupId";
             await conn.ExecuteAsync(query, new { UserId = userId, GroupId = groupId, IsAdmin = isAdmin });
+            string actorName = await conn.ExecuteScalarAsync<string>(
+        "SELECT Username FROM Users WHERE Id_User = @ActorUserId",
+        new { ActorUserId = actorUserId });
+
+            string groupName = await conn.ExecuteScalarAsync<string>(
+                "SELECT Name FROM Groups WHERE Id_Group = @GroupId",
+                new { GroupId = groupId });
+
+            string statusMessage = isAdmin
+                ? $"{actorName} tornou-te administrador do grupo {groupName}"
+                : $"{actorName} removeu-te como administrador do grupo {groupName}";
+
+            if (userId != actorUserId)
+            {
+                await _notificationRepository.CreateNotification(new Notification
+                {
+                    RecipientUserId = userId,
+                    ActorUserId = actorUserId,
+                    Type = NotificationType.GroupAdmin,
+                    Message = statusMessage,
+                    RelatedEntityId = groupId,
+                    IsRead = false,
+                    CreatedAt = DateTime.Now
+                });
+            }
         }
 
         public async Task<bool> IsUserAdmin(int userId, int groupId)
@@ -193,8 +245,9 @@ namespace BlazorAppFood.Repositories
             return (await conn.QueryAsync<Group>(query, new { SearchQuery = searchQuery + "%" })).ToList();
         }
 
-
-
-
+        public Task AddUserToGroup(int userId, int groupId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

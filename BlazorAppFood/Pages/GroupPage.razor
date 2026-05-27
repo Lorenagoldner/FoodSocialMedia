@@ -365,7 +365,7 @@ else
                         bool isUserInGroup = await GroupRepository.IsUserInGroup(user.Id_User, newGroupId);
                         if (!isUserInGroup)
                         {
-                            await GroupRepository.AddUserToGroup(user.Id_User, newGroupId);
+                            await GroupRepository.AddUserToGroup(user.Id_User, newGroupId, currentUserId);
                         }
                         else
                         {
@@ -425,7 +425,7 @@ else
 
     private async Task ToggleAdminStatus(int userId, int groupId, bool makeAdmin)
     {
-        await GroupRepository.SetUserAdminStatus(userId, groupId, makeAdmin);
+        await GroupRepository.SetUserAdminStatus(userId, groupId, makeAdmin, currentUserId);
         await LoadGroupMembers(groupId);
     }
 
@@ -474,7 +474,7 @@ else
                 }
                 else
                 {
-                    await GroupRepository.AddUserToGroup(user.Id_User, groupIdToAddUser);
+                    await GroupRepository.AddUserToGroup(user.Id_User, groupIdToAddUser, currentUserId);
                     await LoadGroups();
                     CloseModal();
                 }
@@ -505,7 +505,7 @@ else
 
     private async Task ConfirmAdminChange()
     {
-        await GroupRepository.SetUserAdminStatus(pendingUserId, pendingGroupId, pendingMakeAdmin);
+        await GroupRepository.SetUserAdminStatus(pendingUserId, pendingGroupId, pendingMakeAdmin, currentUserId);
         await LoadGroupMembers(pendingGroupId);
         showConfirmAdminChange = false;
     }
