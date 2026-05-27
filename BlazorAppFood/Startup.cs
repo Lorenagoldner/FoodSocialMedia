@@ -1,6 +1,7 @@
 using BlazorAppFood.Auth;
 using BlazorAppFood.Configuration;
 using BlazorAppFood.Data;
+using BlazorAppFood.Models;
 using BlazorAppFood.Repositories;
 using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Builder;
@@ -35,6 +36,7 @@ namespace BlazorAppFood
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddSignalR();
             services.AddSyncfusionBlazor();
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("FoodSocialMediaDB")));
@@ -49,6 +51,7 @@ namespace BlazorAppFood
             services.AddScoped<ITagRepository, TagRepository>();
 
             services.AddBlazoredSessionStorage();
+
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
 
@@ -82,6 +85,7 @@ namespace BlazorAppFood
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
+                endpoints.MapHub<GroupChatHub>("/groupChatHub");
                 endpoints.MapFallbackToPage("/_Host");
             });
         }

@@ -22,6 +22,7 @@ namespace BlazorAppFood.Repositories
         Task<List<Group>> SearchGroupsByName(string name);
         Task<List<Group>> SearchGroupsByNameStartingWith(string searchQuery);
         Task<(string CreatorName, int FollowersCount)> GetGroupMetadata(int groupId);
+        Task DeleteChatMessage(int messageId, string requestingUsername, bool isAdmin);
 
     }
 

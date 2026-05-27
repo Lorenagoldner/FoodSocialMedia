@@ -11,13 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-<<<<<<< HEAD
     <Content Remove="Components\RatingComponent.razor" />
     <Content Remove="Components\RecipePost.razor" />
     <Content Remove="Components\SearchComponent.razor" />
-=======
     <Content Remove="Pages\AddRecipe.razor" />
->>>>>>> main
     <Content Remove="Pages\Counter.razor" />
     <Content Remove="Pages\FetchData.razor" />
     <Content Remove="Pages\Recipes.razor" />
