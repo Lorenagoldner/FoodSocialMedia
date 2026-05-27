@@ -99,7 +99,7 @@
     {
         if (selectedGroupId.HasValue && !userGroupIds.Contains(selectedGroupId.Value))
         {
-            await GroupRepository.AddUserToGroup(userId, selectedGroupId.Value);
+            await GroupRepository.AddUserToGroup(userId, selectedGroupId.Value, userId);
             var joinedGroup = groups.FirstOrDefault(g => g.Id_Group == selectedGroupId.Value);
             if (joinedGroup != null)
             {

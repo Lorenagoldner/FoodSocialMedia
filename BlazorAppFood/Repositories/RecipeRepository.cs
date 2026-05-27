@@ -1,13 +1,14 @@
-﻿using BlazorAppFood.Models;
+﻿using BlazorAppFood.Configuration;
+using BlazorAppFood.Data;
+using BlazorAppFood.Models;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
-using BlazorAppFood.Configuration;
+using System.Threading.Tasks;
 
 namespace BlazorAppFood.Repositories
 {
@@ -15,9 +16,14 @@ namespace BlazorAppFood.Repositories
     {
         //Database Connection
         private readonly SqlConnectionConfiguration _configuration;
-        public RecipeRepository(SqlConnectionConfiguration configuration)
+        private readonly INotificationRepository _notificationRepository;
+
+        public RecipeRepository(
+            SqlConnectionConfiguration configuration,
+            INotificationRepository notificationRepository)
         {
             _configuration = configuration;
+            _notificationRepository = notificationRepository;
         }
 
         //Add 
@@ -348,7 +354,6 @@ namespace BlazorAppFood.Repositories
         public async Task<int> RatingRecipe(int idRecipe, int idUser, int valueRating)
         {
             
-
             using (var conn = new SqlConnection(_configuration._value))
             {
                 string sql = @"IF NOT EXISTS (SELECT * FROM Ratings WHERE Id_Recipe = @idRecipe AND Id_User = @idUser) 
@@ -357,17 +362,49 @@ namespace BlazorAppFood.Repositories
                                 UPDATE  Recipe SET AverageRating = ( SELECT CAST(AVG(RatingValue) AS DECIMAL(2,1)) FROM Ratings WHERE Id_Recipe = @idRecipe)
                                 WHERE Id_Recipe = @idRecipe;";
 
-                await conn.QueryMultipleAsync(sql,
-                                              new
-                                              {
-                                                  IdUser = idUser,
-                                                  IdRecipe = idRecipe,
-                                                  ValueRating = valueRating
-                                              });
+                //await conn.QueryMultipleAsync(sql,
+                //                              new
+                //                              {
+                //                                  IdUser = idUser,
+                //                                  IdRecipe = idRecipe,
+                //                                  ValueRating = valueRating
+                //                              });
+                //return 1;
+                await conn.ExecuteAsync(sql, new
+                {
+                    idUser,
+                    idRecipe,
+                    valueRating
+                });
+
+                var recipeInfo = await conn.QuerySingleOrDefaultAsync<Recipe>(
+                    @"SELECT r.Id_User, r.NameRecipe
+              FROM Recipe r
+              WHERE r.Id_Recipe = @IdRecipe",
+                    new { IdRecipe = idRecipe });
+
+                var actorName = await conn.ExecuteScalarAsync<string>(
+                    @"SELECT Username FROM Users WHERE Id_User = @IdUser",
+                    new { IdUser = idUser });
+
+                if (recipeInfo != null && recipeInfo.Id_User != idUser)
+                {
+                    await _notificationRepository.CreateNotification(new Notification
+                    {
+                        RecipientUserId = recipeInfo.Id_User,
+                        ActorUserId = idUser,
+                        Type = NotificationType.Rating,
+                        Message = $"{actorName} avaliou a tua receita {recipeInfo.NameRecipe}",
+                        RelatedEntityId = idRecipe,
+                        IsRead = false,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
                 return 1;
             }
-
         }
+
         public async Task<int?> GetUserRating(int idRecipe, int idUser)
         {
             using (var conn = new SqlConnection(_configuration._value))
@@ -418,7 +455,15 @@ namespace BlazorAppFood.Repositories
         public async Task<bool> AddFavorite(int idRecipe, int idUser)
         {
             using (var conn = new SqlConnection(_configuration._value))
-            {                   
+            {
+                string checkQuery = @"SELECT COUNT(*) 
+                              FROM Favorites 
+                              WHERE IdRecipe = @IdRecipe AND IdUser = @IdUser";
+
+                int alreadyFavorite = await conn.ExecuteScalarAsync<int>(
+                    checkQuery,
+                    new { IdRecipe = idRecipe, IdUser = idUser });
+
                 string myQuery = @"IF NOT EXISTS (SELECT * FROM Favorites WHERE IdRecipe = @IdRecipe AND IdUser = @idUser) 
                                  INSERT INTO Favorites(IdUser, IdRecipe) VALUES(@idUser, @idRecipe)
                                  ELSE DELETE FROM Favorites WHERE IdUser = @idUser AND IdRecipe = @idRecipe";
@@ -430,6 +475,33 @@ namespace BlazorAppFood.Repositories
                                             IdRecipe = idRecipe,
                                             IdUser = idUser
                                         });
+
+                if (alreadyFavorite == 0)
+                {
+                    var recipeInfo = await conn.QuerySingleOrDefaultAsync<Recipe>(
+                        @"SELECT r.Id_User, r.NameRecipe
+                  FROM Recipe r
+                  WHERE r.Id_Recipe = @IdRecipe",
+                        new { IdRecipe = idRecipe });
+
+                    var actorName = await conn.ExecuteScalarAsync<string>(
+                        @"SELECT Username FROM Users WHERE Id_User = @IdUser",
+                        new { IdUser = idUser });
+
+                    if (recipeInfo != null && recipeInfo.Id_User != idUser)
+                    {
+                        await _notificationRepository.CreateNotification(new Notification
+                        {
+                            RecipientUserId = recipeInfo.Id_User,
+                            ActorUserId = idUser,
+                            Type = NotificationType.Favorite,
+                            Message = $"{actorName} favoritou a tua receita {recipeInfo.NameRecipe}",
+                            RelatedEntityId = idRecipe,
+                            IsRead = false,
+                            CreatedAt = DateTime.Now
+                        });
+                    }
+                }
             }
 
             return true;

@@ -8,10 +8,10 @@ namespace BlazorAppFood.Repositories
     {
         Task<int> CreateGroup(string name, int userId);
         Task DeleteGroup(int groupId, int requestingUserId);
-        Task SetUserAdminStatus(int userId, int groupId, bool isAdmin);
+        Task SetUserAdminStatus(int userId, int groupId, bool isAdmin, int actorUserId);
         Task<bool> IsUserAdmin(int userId, int groupId);
         Task<bool> IsUserInGroup(int userId, int groupId);
-        Task AddUserToGroup(int userId, int groupId);
+        Task AddUserToGroup(int userId, int groupId, int actorUserId);
         Task<bool> RemoveUserFromGroup(int userId, int groupId);
         Task<Group> GetGroupById(int groupId);
         Task<List<Group>> GetUserGroups(int userId);

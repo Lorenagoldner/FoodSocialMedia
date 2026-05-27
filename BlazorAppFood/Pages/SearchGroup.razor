@@ -70,8 +70,6 @@
     private HashSet<int> userGroupIds = new();
     private bool IsUserInGroup(int groupId) => userGroupIds.Contains(groupId);
 
-
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -108,8 +106,6 @@
         userGroupIds = joinedGroups.Select(g => g.Id_Group).ToHashSet();
     }
 
-
-
     private async Task LoadGroups()
     {
         groups = await GroupRepository.GetAllGroups();
@@ -130,13 +126,11 @@
 
         isLoading = false;
     }
-
-
     
 
     private async Task JoinGroup(int groupId)
     {
-        await GroupRepository.AddUserToGroup(userId, groupId);
+        await GroupRepository.AddUserToGroup(userId, groupId, userId);
         await SearchGroups();
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
 

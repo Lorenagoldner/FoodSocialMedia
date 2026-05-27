@@ -26,6 +26,8 @@ namespace BlazorAppFood.Models
         Comment,
         Favorite,
         Follow,
-        GroupInvite
+        Rating,
+        GroupInvite,
+        GroupAdmin
     }
 }
