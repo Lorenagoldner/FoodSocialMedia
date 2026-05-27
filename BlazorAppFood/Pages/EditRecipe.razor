@@ -265,13 +265,15 @@ else
         }
     }
 
-    void AddIngredient(string ingredientName)
+    void AddIngredient(string name)
     {
-        var ingredient = allIngredients.FirstOrDefault(i => i.Name == ingredientName);
-        if (ingredient != null)
-        {
-            recipe.Ingredients.Add(ingredient);
-        }
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        var ingredient = allIngredients.FirstOrDefault(i => i.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
+                         ?? new Ingredient(name.Trim());
+
+        recipe.Ingredients.Add(ingredient);
+        ingredientName = "";
     }
 
     void RemoveIngredient(Ingredient ingredient)
