@@ -137,7 +137,26 @@
                                             </div>
                                         </div>
 
-                                            <br><br><br><br>
+                                        <div class="row mb-2">
+                                            @if (recipe.Servings > 0)
+                                            {
+                                                <div class="col-6">
+                                                    <i class="bi bi-people-fill"></i> @recipe.Servings porções
+                                                </div>
+                                            }
+                                            <div class="col-6">
+                                                <span class="badge @(recipe.Difficulty == DifficultyLevel.Facil ? "bg-success" : recipe.Difficulty == DifficultyLevel.Medio ? "bg-warning text-dark" : "bg-danger")">
+                                                    @(recipe.Difficulty switch {
+                                                        DifficultyLevel.Facil => "Fácil",
+                                                        DifficultyLevel.Medio => "Médio",
+                                                        DifficultyLevel.Dificil => "Difícil",
+                                                        _ => "Fácil"
+                                                    })
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                            <br><br>
                                             <div class="row">
                                                 <div class="col-3">
                                                     @if (@recipe.UserPhoto != null)
@@ -318,7 +337,7 @@
 
         if (currentFeedMode == FeedMode.Global)
         {
-            listPosts = (await RecipeRepository.RecipeList()).ToList();
+            listPosts = await RecipeRepository.GetAllRecipes();
         }
         else
         {

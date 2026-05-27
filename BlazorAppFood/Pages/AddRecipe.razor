@@ -23,6 +23,11 @@
 
         <div class="form-recipe-body" id="form-recipe-expand">
 
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
             <EditForm Model="@recipe" OnValidSubmit="@CreateRecipe">
                 <div class="row">
                     <div class="col-8">
@@ -46,6 +51,22 @@
                             <img src="img/gallery.svg" alt="">
                             <label for="imgForm" class="form-label">Photo</label>
                             <InputFile OnChange="HandleFileSelection" class="form-control" id="imgForm" />
+                        </div>
+
+                        <!-- Servings -->
+                        <div class="mb-3">
+                            <label class="form-label">Rendimento (Porções)</label>
+                            <input type="number" min="1" max="999" @bind="recipe.Servings" class="form-control" required />
+                        </div>
+
+                        <!-- Difficulty -->
+                        <div class="mb-3">
+                            <label class="form-label">Dificuldade</label>
+                            <select class="form-select" @bind="recipe.Difficulty">
+                                <option value="@DifficultyLevel.Facil">Fácil</option>
+                                <option value="@DifficultyLevel.Medio">Médio</option>
+                                <option value="@DifficultyLevel.Dificil">Difícil</option>
+                            </select>
                         </div>
 
                         <!-- Prep and Cook time -->
@@ -214,8 +235,11 @@
         allTags = await RecipeRepository.GetAllTagsAsync();
     }
 
+    string errorMessage = "";
+
     protected async Task CreateRecipe()
     {
+        errorMessage = "";
         recipe.Prep_Time = prepTimeUnit == "h" ? prepTimeValue * 60 : prepTimeValue;
         recipe.Cook_Time = cookTimeUnit == "h" ? cookTimeValue * 60 : cookTimeValue;
 
@@ -224,8 +248,12 @@
                 .Select(tag => tag.IdTag)
                 .ToList();
 
-        await RecipeRepository.CreateRecipe(recipe);
-        NavigationManager.NavigateTo("/feed");
+        bool success = await RecipeRepository.CreateRecipe(recipe);
+
+        if (success)
+            NavigationManager.NavigateTo("/feed");
+        else
+            errorMessage = "Erro ao guardar a receita. Tente novamente.";
     }
 
     protected async Task HandleFileSelection(InputFileChangeEventArgs files)

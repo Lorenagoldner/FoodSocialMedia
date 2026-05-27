@@ -30,6 +30,9 @@ namespace BlazorAppFood.Models
 
         public List<Ingredient> Ingredient { get; set; } = new();
 
+        public int Servings { get; set; }
+        public DifficultyLevel Difficulty { get; set; }
+
         public int FavoriteCount { get; set; }
 
         public string SearchText =>

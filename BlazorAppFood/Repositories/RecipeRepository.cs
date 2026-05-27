@@ -46,6 +46,12 @@ namespace BlazorAppFood.Repositories
                         int recp_id = parameters.Get<int>("Recipe_Id_Out");
                         recipe.Id_Recipe = recp_id;
 
+                        await conn.ExecuteAsync(
+                            "UPDATE Recipe SET Servings = @Servings, Difficulty = @Difficulty WHERE Id_Recipe = @Id_Recipe",
+                            new { Servings = recipe.Servings, Difficulty = (int)recipe.Difficulty, Id_Recipe = recp_id },
+                            transaction,
+                            commandType: System.Data.CommandType.Text);
+
                         // Loop for each ingredient
                         foreach (var ingredient in recipe.Ingredients)
                         {
@@ -187,23 +193,17 @@ namespace BlazorAppFood.Repositories
 
             using (var conn = new SqlConnection(_configuration._value))
             {
-                // Execute the stored procedure to fetch the recipe, ingredients, and tags
                 var result = await conn.QueryAsync<Recipe, Ingredient, Tag, Recipe>(
                     "spGetRecipe_GetOne",
                     (recipeData, ingredientData, tagData) =>
                     {
-                        // Assign basic recipe data
                         recipe = recipeData;
 
                         if (ingredientData != null)
-                        {
                             recipe.Ingredients.Add(ingredientData);
-                        }
 
                         if (tagData != null)
-                        {
                             recipe.Tags.Add(tagData);
-                        }
 
                         return recipe;
                     },
@@ -211,6 +211,14 @@ namespace BlazorAppFood.Repositories
                     splitOn: "Id_Ingredient, IdTag",
                     commandType: CommandType.StoredProcedure
                 );
+
+                recipe.Servings = await conn.ExecuteScalarAsync<int>(
+                    "SELECT ISNULL(Servings, 0) FROM Recipe WHERE Id_Recipe = @Id",
+                    new { Id = id });
+
+                recipe.Difficulty = (DifficultyLevel)await conn.ExecuteScalarAsync<int>(
+                    "SELECT ISNULL(Difficulty, 0) FROM Recipe WHERE Id_Recipe = @Id",
+                    new { Id = id });
             }
 
             return recipe;
@@ -253,6 +261,8 @@ namespace BlazorAppFood.Repositories
                         Prep_Time = @Prep_Time,
                         Cook_Time = @Cook_Time,
                         Preparation = @Preparation,
+                        Servings = @Servings,
+                        Difficulty = @Difficulty,
                         [Image] = COALESCE(@Image, [Image])
                     WHERE Id_Recipe = @Id_Recipe";
 
@@ -263,6 +273,8 @@ namespace BlazorAppFood.Repositories
                             recipe.Prep_Time,
                             recipe.Cook_Time,
                             recipe.Preparation,
+                            recipe.Servings,
+                            Difficulty = (int)recipe.Difficulty,
                             recipe.Image
                         }, transaction, commandType: CommandType.Text);
 
