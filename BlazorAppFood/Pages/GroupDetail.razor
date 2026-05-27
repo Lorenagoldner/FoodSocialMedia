@@ -2,10 +2,12 @@
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
+@using Microsoft.AspNetCore.SignalR.Client
 @inject IGroupRepository GroupRepository
 @inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService sessionStorage
+@implements IAsyncDisposable
 
 <div class="d-flex justify-content-center mt-4">
     <h4>Detalhes do Grupo</h4>
@@ -18,35 +20,80 @@
             <div class="card-header text-center">
                 <h5>@group.Name</h5>
             </div>
-        
-        <div class="card-body">
-            <p>@group.Description</p> <!-- Group Description, add this to your Group model if needed -->
-            <h6>Membros</h6>
-            <ul class="list-group">
-                @foreach (var member in groupMembers)
+            <div class="card-body">
+                <p>@group.Description</p>
+                <h6>Membros</h6>
+                <ul class="list-group mb-3">
+                    @foreach (var member in groupMembers)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <img src="@member.UserPhoto" class="rounded-circle" width="40" height="40" />
+                            @member.Username
+                            @if (member.IsAdmin)
+                            {
+                                <span class="badge bg-success ms-1">Admin</span>
+                            }
+                        </li>
+                    }
+                </ul>
+
+                @if (isUserAdmin)
                 {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <img src="@member.UserPhoto" class="rounded-circle" width="40" height="40" />
-                        @member.Username
-                        @if (member.IsAdmin)
-                        {
-                            <span class="badge bg-success ms-1">Admin</span>
-                        }
-                    </li>
+                    <div class="mb-2">
+                        <button class="btn btn-danger" @onclick="DeleteGroup">Eliminar Grupo</button>
+                    </div>
                 }
-            </ul>
 
-            @if (isUserAdmin)
-            {
-                <div class="mt-3">
-                    <button class="btn btn-danger" @onclick="DeleteGroup">Eliminar Grupo</button>
+                <div class="mb-4">
+                    <button class="btn btn-secondary" @onclick="LeaveGroup">Sair do Grupo</button>
                 </div>
-            }
 
-            <div class="mt-3">
-                <button class="btn btn-secondary" @onclick="LeaveGroup">Sair do Grupo</button>
+                <hr />
+
+                <h6>Chat do Grupo</h6>
+
+                <div class="border rounded p-2 mb-2 bg-light"
+                     style="height: 300px; overflow-y: auto; display: flex; flex-direction: column-reverse;"
+                     id="chatBox">
+                    <div>
+                        @foreach (var msg in chatMessages)
+                        {
+                            <div class="mb-1 d-flex justify-content-between">
+                                <div>
+                                    <span class="fw-bold">@msg.Username</span>
+                                    <span class="text-muted" style="font-size: 0.75rem;"> @msg.Timestamp.ToString("HH:mm")</span>
+                                    <div>@msg.Message</div>
+                                </div>
+                                @if (msg.Username == currentUsername || isUserAdmin)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => DeleteMessage(msg.Id)">
+                                        🗑
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <input class="form-control"
+                           placeholder="Escreve uma mensagem..."
+                           @bind="messageInput"
+                           @bind:event="oninput"
+                           @onkeydown="HandleKeyDown" />
+                    <button class="btn btn-primary"
+                            @onclick="SendMessage"
+                            disabled="@(!IsConnected)">
+                        Enviar
+                    </button>
+                </div>
+
+                @if (!IsConnected)
+                {
+                    <p class="text-warning mt-1" style="font-size: 0.8rem;">A ligar ao chat...</p>
+                }
             </div>
-        </div>
         </div>
     </div>
 }
@@ -57,50 +104,94 @@ else
 
 @code {
     [Parameter] public int GroupId { get; set; }
+
     private Group group;
-    private List<GroupMember> groupMembers = new List<GroupMember>();
+    private List<GroupMember> groupMembers = new();
     private bool isUserAdmin = false;
+
+    private HubConnection hubConnection;
+    private List<GroupChatMessages> chatMessages = new();
+    private string messageInput = "";
+    private string currentUsername = "";
+
+    private bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
 
     protected override async Task OnInitializedAsync()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserRepository.GetUserByEmail(email);
 
-        // Get group details
-        group = await GroupRepository.GetGroupById(GroupId); // Now this method exists
+        currentUsername = user.Username;
 
-        // Get group members
+        group = await GroupRepository.GetGroupById(GroupId);
         groupMembers = await GroupRepository.GetGroupMembers(GroupId);
-
-        // Check if the current user is an admin
         isUserAdmin = groupMembers.Any(m => m.Id_User == user.Id_User && m.IsAdmin);
+
+        chatMessages = await GroupRepository.GetChatMessages(GroupId);
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri($"/groupChatHub?groupId={GroupId}"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<int, string, string, DateTime>("ReceiveMessage",
+            (groupId, username, message, timestamp) =>
+            {
+                chatMessages.Add(new GroupChatMessages
+                {
+                    Id_Group = groupId,
+                    Username = username,
+                    Message = message,
+                    Timestamp = timestamp
+                });
+                InvokeAsync(StateHasChanged);
+            });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(messageInput) || !IsConnected)
+            return;
+
+        await hubConnection.SendAsync("SendMessage", GroupId, currentUsername, messageInput.Trim());
+        messageInput = "";
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await SendMessage();
     }
 
     private async Task LeaveGroup()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserRepository.GetUserByEmail(email);
-
         bool success = await GroupRepository.RemoveUserFromGroup(user.Id_User, GroupId);
         if (success)
-        {
-            NavigationManager.NavigateTo("/feed"); // Redirect to feed page after leaving
-        }
+            NavigationManager.NavigateTo("/feed");
     }
 
     private async Task DeleteGroup()
     {
         var email = await sessionStorage.GetItemAsync<string>("userEmail");
         var user = await UserRepository.GetUserByEmail(email);
-
         bool isAdmin = await GroupRepository.IsUserAdmin(user.Id_User, GroupId);
-        if (!isAdmin)
-        {
-            // Optional: You can show a message or handle an error here
-            return;
-        }
+        if (!isAdmin) return;
+        await GroupRepository.DeleteGroup(GroupId, user.Id_User);
+        NavigationManager.NavigateTo("/feed");
+    }
 
-        await GroupRepository.DeleteGroup(GroupId, user.Id_User); // Delete group
-        NavigationManager.NavigateTo("/feed"); // Redirect to feed page after deletion
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+            await hubConnection.DisposeAsync();
+    }
+    private async Task DeleteMessage(int messageId)
+    {
+        await GroupRepository.DeleteChatMessage(messageId, currentUsername, isUserAdmin);
+        chatMessages.RemoveAll(m => m.Id == messageId);
     }
 }

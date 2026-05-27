@@ -4,6 +4,7 @@ namespace BlazorAppFood.Models
 {
     public class GroupChatMessages
     {
+        public int Id { get; set; }
         public int Id_Group { get; set; }
         public string Username { get; set; }
         public string Message { get; set; }

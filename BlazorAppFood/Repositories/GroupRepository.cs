@@ -199,13 +199,21 @@ namespace BlazorAppFood.Repositories
         public async Task<List<GroupChatMessages>> GetChatMessages(int groupId)
         {
             using var conn = new SqlConnection(_configuration._value);
-
             string query = @"SELECT GroupId AS Id_Group, Username, Message, Timestamp
-                     FROM ChatMessages
+                     FROM GroupChatMessages
                      WHERE GroupId = @GroupId
                      ORDER BY Timestamp";
-
             return (await conn.QueryAsync<GroupChatMessages>(query, new { GroupId = groupId })).ToList();
+        }
+        public async Task DeleteChatMessage(int messageId, string requestingUsername, bool isAdmin)
+        {
+            using var conn = new SqlConnection(_configuration._value);
+
+            string query = isAdmin
+                ? "DELETE FROM GroupChatMessages WHERE Id = @Id"
+                : "DELETE FROM GroupChatMessages WHERE Id = @Id AND Username = @Username";
+
+            await conn.ExecuteAsync(query, new { Id = messageId, Username = requestingUsername });
         }
         public async Task<List<Group>> GetAllGroups()
         {
