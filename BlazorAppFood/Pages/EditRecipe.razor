@@ -32,6 +32,22 @@ else
                 <InputFile OnChange="HandleFileSelection" class="form-control" />
             </div>
 
+            <!-- Servings -->
+            <div class="mb-3">
+                <label class="form-label">Rendimento (Porções)</label>
+                <input type="number" min="1" max="999" @bind="recipe.Servings" class="form-control" required />
+            </div>
+
+            <!-- Difficulty -->
+            <div class="mb-3">
+                <label class="form-label">Dificuldade</label>
+                <select class="form-select" @bind="recipe.Difficulty">
+                    <option value="@DifficultyLevel.Facil">Fácil</option>
+                    <option value="@DifficultyLevel.Medio">Médio</option>
+                    <option value="@DifficultyLevel.Dificil">Difícil</option>
+                </select>
+            </div>
+
             <!-- Prep Time -->
             <div class="mb-3">
                 <label class="form-label">Tempo de Preparação</label>

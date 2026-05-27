@@ -73,6 +73,18 @@
                             </div>
                         }
                         <p><b>Preparação:</b> @recipe.Preparation</p>
+                        @if (recipe.Servings > 0)
+                        {
+                            <p><b>Rendimento:</b> @recipe.Servings porções</p>
+                        }
+                        <p><b>Dificuldade:</b>
+                            @(recipe.Difficulty switch {
+                                DifficultyLevel.Facil => "Fácil",
+                                DifficultyLevel.Medio => "Médio",
+                                DifficultyLevel.Dificil => "Difícil",
+                                _ => "Fácil"
+                            })
+                        </p>
                         <p><b>Tempo de Preparação:</b> @TimeFormatter.FormatMinutes(recipe.Prep_Time)</p>
                         <p><b>Tempo de Cozinhar:</b> @TimeFormatter.FormatMinutes(recipe.Cook_Time)</p>
                         @if (recipe.Tags?.Count > 0)
