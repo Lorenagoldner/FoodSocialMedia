@@ -278,23 +278,39 @@ namespace BlazorAppFood.Repositories
                             recipe.Image
                         }, transaction, commandType: CommandType.Text);
 
-                        // Update Ingredients
                         if (recipe.Ingredients != null)
                         {
-                            // Delete old ingredients
                             await conn.ExecuteAsync("DELETE FROM Recipes_Ingredients WHERE Id_Recipe = @RecipeId", new { RecipeId = recipe.Id_Recipe }, transaction);
 
-                            // Insert new ingredients
                             foreach (var ingredient in recipe.Ingredients)
                             {
-                                await conn.ExecuteAsync(@"
-                            INSERT INTO Recipes_Ingredients (Id_Recipe, Id_Ingredient) 
-                            VALUES (@RecipeId, @IngredientId)",
-                                    new
+                                int ingredientId;
+
+                                if (ingredient.Id_Ingredient > 0)
+                                {
+                                    ingredientId = ingredient.Id_Ingredient;
+                                }
+                                else
+                                {
+                                    var existingId = await conn.ExecuteScalarAsync<int?>(
+                                        "SELECT Id_Ingredient FROM Ingredients WHERE LOWER(Name) = LOWER(@Name)",
+                                        new { ingredient.Name }, transaction);
+
+                                    if (existingId.HasValue)
                                     {
-                                        RecipeId = recipe.Id_Recipe,
-                                        IngredientId = ingredient.Id_Ingredient
-                                    }, transaction);
+                                        ingredientId = existingId.Value;
+                                    }
+                                    else
+                                    {
+                                        ingredientId = await conn.ExecuteScalarAsync<int>(
+                                            "INSERT INTO Ingredients (Name) VALUES (@Name); SELECT CAST(SCOPE_IDENTITY() as int);",
+                                            new { ingredient.Name }, transaction);
+                                    }
+                                }
+
+                                await conn.ExecuteAsync(
+                                    "INSERT INTO Recipes_Ingredients (Id_Recipe, Id_Ingredient) VALUES (@RecipeId, @IngredientId)",
+                                    new { RecipeId = recipe.Id_Recipe, IngredientId = ingredientId }, transaction);
                             }
                         }
 
