@@ -82,10 +82,10 @@
 
                 🔔
 
-                @if (notifications.Count > 0)
+                @if (notifications.Count(n => !n.IsRead) > 0)
                 {
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        @notifications.Count
+                        @notifications.Count(n => !n.IsRead)
                     </span>
                 }
 
@@ -95,11 +95,14 @@
 
                 @if (notifications.Any())
                 {
-                    @foreach (var notification in notifications.Take(5))
+                    @foreach (var notification in notifications
+                        .OrderByDescending(n => n.CreatedAt)
+                        .Take(10))
                     {
-                        <div class="list-group-item">
+                        <button class="list-group-item list-group-item-action"
+                                @onclick="() => OpenNotification(notification)">
                             @notification.Message
-                        </div>
+                        </button>
                     }
                 }
                 else
@@ -135,6 +138,27 @@
     private List<SearchResult> filteredResults = new();
 
     private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+
+    private async Task OpenNotification(Notification notification)
+    {
+        await NotificationRepository.MarkAsRead(notification.Id);
+
+        if (notification.Type == NotificationType.Comment ||
+            notification.Type == NotificationType.Favorite ||
+            notification.Type == NotificationType.Rating)
+        {
+            NavigationManager.NavigateTo($"/recipepage/{notification.RelatedEntityId}");
+        }
+        else if (notification.Type == NotificationType.GroupInvite ||
+                 notification.Type == NotificationType.GroupAdmin)
+        {
+            NavigationManager.NavigateTo($"/grouppage/{notification.RelatedEntityId}");
+        }
+        else if (notification.Type == NotificationType.Follow)
+        {
+            NavigationManager.NavigateTo($"/profilepage/{notification.ActorUserId}");
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
