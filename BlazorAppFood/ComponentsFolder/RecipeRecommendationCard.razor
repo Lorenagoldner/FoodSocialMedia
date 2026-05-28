@@ -1,0 +1,31 @@
+﻿@using BlazorAppFood.Models
+@inject NavigationManager NavigationManager
+
+<div class="d-flex align-items-center mb-3"
+     style="cursor:pointer;"
+     @onclick="@(() => NavigationManager.NavigateTo($"/recipepage/{Recipe.Id_Recipe}"))">
+
+    @if (Recipe.Image != null)
+    {
+        var img = $"data:image/jpeg;base64,{Convert.ToBase64String(Recipe.Image)}";
+
+        <img src="@img"
+             width="60"
+             height="60"
+             style="object-fit: cover; border-radius: 8px; margin-right:10px;" />
+    }
+    else
+    {
+        <img src="img/images.svg"
+             width="60"
+             height="60"
+             style="object-fit: cover; border-radius: 8px; margin-right:10px;" />
+    }
+
+    <span class="fw-semibold">@Recipe.NameRecipe</span>
+</div>
+
+@code {
+    [Parameter]
+    public Recipe Recipe { get; set; }
+}
