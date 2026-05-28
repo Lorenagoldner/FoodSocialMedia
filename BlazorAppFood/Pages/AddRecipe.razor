@@ -102,6 +102,13 @@
                         <img src="img/harvest.svg" alt="">
                         <label for="inputIngredients" class="form-label">Ingredients</label>
 
+                      @*   @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger mt-2">
+                                @errorMessage
+                            </div>
+                        } *@
+
                         <div class="row">
                             <div class="col-10">
                                 @*<input type="text" class="form-control" id="inputIngredients" @bind=@ingredientName>*@
@@ -199,6 +206,7 @@
 
 
 @code {
+
     Recipe recipe = new Recipe();
     byte[] _fileBytes = null;
     long maxFileSize = 1024 * 1024 * 15;
@@ -217,6 +225,7 @@
     private string prepTimeUnit = "min";
     private int cookTimeValue = 30;
     private string cookTimeUnit = "min";
+    private string ErrorMessage = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -248,13 +257,27 @@
                 .Select(tag => tag.IdTag)
                 .ToList();
 
-        bool success = await RecipeRepository.CreateRecipe(recipe);
+        if (recipe.Ingredients == null ||
+            !recipe.Ingredients.Any(i => !string.IsNullOrWhiteSpace(i.Name)))
+        {
+            errorMessage = "A receita deve ter pelo menos um ingrediente.";
+            return;
+        }
 
-        if (success)
-            NavigationManager.NavigateTo("/feed");
-        else
-            errorMessage = "Erro ao guardar a receita. Tente novamente.";
-    }
+        try
+        {
+            bool success = await RecipeRepository.CreateRecipe(recipe);
+
+            if (success)
+                NavigationManager.NavigateTo("/feed");
+            else
+                errorMessage = "Erro ao guardar a receita. Tente novamente.";
+            }
+        catch (ArgumentException ex)
+        {
+            errorMessage = ex.Message;
+        }
+}
 
     protected async Task HandleFileSelection(InputFileChangeEventArgs files)
     {
