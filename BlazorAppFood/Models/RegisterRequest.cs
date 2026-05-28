@@ -24,5 +24,11 @@ namespace BlazorAppFood.Models
         [Required(ErrorMessage = "Password confirmation is required")]
         [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
+        [Required(ErrorMessage = "Por favor escolhe uma pergunta de segurança.")]
+        public string SecurityQuestion { get; set; } = "";
+
+        [Required(ErrorMessage = "A resposta de segurança é obrigatória.")]
+        [MinLength(2, ErrorMessage = "A resposta deve ter pelo menos 2 caracteres.")]
+        public string SecurityAnswer { get; set; } = "";
     }
 }

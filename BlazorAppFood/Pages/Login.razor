@@ -42,9 +42,22 @@
                                    @bind-Value="user.Password" />
                     </div>
 
-                    <div class="form-check mb-3">
-                        <input type="checkbox" class="form-check-input" />
-                        <label class="form-check-label">Remember me</label>
+                    <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+
+                        <div class="form-check d-flex align-items-center">
+                            <input type="checkbox" class="form-check-input me-2" />
+                            <label class="form-check-label text-nowrap">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <a href="/forgot-password"
+                           class="text-muted small text-decoration-none text-nowrap"
+                           @onclick="CloseModal"
+                           @onclick:preventDefault="false">
+                            Esqueci a senha
+                        </a>
+
                     </div>
 
                     @if (showErrorLogin)
@@ -68,6 +81,7 @@
         </div>
     </div>
 </div>
+
 @if (isOpen)
 {
     <div class="modal-backdrop fade show"></div>
