@@ -29,7 +29,7 @@ namespace BlazorAppFood.Repositories
         //Add 
         public async Task<bool> CreateRecipe(Recipe recipe)
         {
-            ValidateRecipe(recipe);
+            ValidateRecipe(recipe, requireImage: true);
             using (var conn = new SqlConnection(_configuration._value))
             {
                 await conn.OpenAsync();
@@ -226,6 +226,10 @@ namespace BlazorAppFood.Repositories
                 recipe.Difficulty = (DifficultyLevel)await conn.ExecuteScalarAsync<int>(
                     "SELECT ISNULL(Difficulty, 0) FROM Recipe WHERE Id_Recipe = @Id",
                     new { Id = id });
+
+                recipe.Image = await conn.ExecuteScalarAsync<byte[]>(
+                   "SELECT Image FROM Recipe WHERE Id_Recipe = @Id",
+                   new { Id = id });
             }
 
             return recipe;
@@ -253,7 +257,7 @@ namespace BlazorAppFood.Repositories
 
         public async Task<bool> UpdateRecipe(Recipe recipe)
         {
-            ValidateRecipe(recipe);
+            ValidateRecipe(recipe, requireImage: false);
 
             using (var conn = new SqlConnection(_configuration._value))
             {
@@ -707,7 +711,7 @@ namespace BlazorAppFood.Repositories
             }
         }
 
-        private void ValidateRecipe(Recipe recipe)
+        private void ValidateRecipe(Recipe recipe, bool requireImage)
         {
             if (recipe == null)
                 throw new ArgumentException("A receita não pode estar vazia.");
@@ -727,8 +731,8 @@ namespace BlazorAppFood.Repositories
             if (recipe.Prep_Time <= 0)
                 throw new ArgumentException("O tempo de preparação deve ser maior que zero.");
 
-            if (recipe.Cook_Time < 0)
-                throw new ArgumentException("O tempo de cozinhar não pode ser negativo.");
+            if (recipe.Cook_Time <= 0)
+                throw new ArgumentException("O tempo de cozinhar deve ser maior que zero.");
 
             if (recipe.Servings < 0)
                 throw new ArgumentException("O rendimento não pode ser negativo.");
@@ -741,6 +745,8 @@ namespace BlazorAppFood.Repositories
             {
                 throw new ArgumentException("A receita deve ter pelo menos uma tag.");
             }
+            if (requireImage && (recipe.Image == null || recipe.Image.Length == 0))
+                throw new ArgumentException("A receita deve ter uma foto.");
         }
 
     }

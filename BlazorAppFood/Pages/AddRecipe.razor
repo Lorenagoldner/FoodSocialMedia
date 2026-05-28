@@ -6,6 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject IUserRepository UserRepository
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject IJSRuntime JSRuntime
 
 <style>
     .accordion-body .form-check-label {
@@ -225,7 +226,7 @@
     private string prepTimeUnit = "min";
     private int cookTimeValue = 30;
     private string cookTimeUnit = "min";
-    private string ErrorMessage = "";
+    //private string ErrorMessage = "";
 
 
     protected override async Task OnInitializedAsync()
@@ -261,6 +262,7 @@
             !recipe.Ingredients.Any(i => !string.IsNullOrWhiteSpace(i.Name)))
         {
             errorMessage = "A receita deve ter pelo menos um ingrediente.";
+            await ScrollToTop();
             return;
         }
 
@@ -268,14 +270,18 @@
         {
             bool success = await RecipeRepository.CreateRecipe(recipe);
 
-            if (success)
+            if (success){
                 NavigationManager.NavigateTo("/feed");
-            else
-                errorMessage = "Erro ao guardar a receita. Tente novamente.";
             }
+            else{
+                errorMessage = "Erro ao guardar a receita. Tente novamente.";
+                await ScrollToTop();
+            }
+        }
         catch (ArgumentException ex)
         {
             errorMessage = ex.Message;
+            await ScrollToTop();
         }
 }
 
@@ -316,6 +322,13 @@
         {
             selectedTagIds.Remove(tagId);
         }
+    }
+
+    private async Task ScrollToTop()
+    {
+        await JSRuntime.InvokeVoidAsync(
+            "eval",
+            "window.scrollTo({ top: 0, behavior: 'smooth' })");
     }
 
 
