@@ -2,6 +2,9 @@
 @using BlazorAppFood.Data
 @using Microsoft.AspNetCore.Components.Authorization
 @using Syncfusion.Blazor.DropDowns
+@using System
+@using System.Threading
+
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject Repositories.IUserRepository UserRepository
 @inject Repositories.IRecipeRepository RecipeRepository
@@ -140,7 +143,12 @@
     </div>
 </nav>
 
+@implements IDisposable
+
 @code {
+    private PeriodicTimer? notificationTimer;
+    private CancellationTokenSource? cancellationTokenSource;
+
     private bool collapseNavMenu = true;
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
@@ -226,10 +234,38 @@
             }
 
             filteredResults = searchResults;
+            StartNotificationPolling();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro a carregar dados de busca: {ex.Message}");
+        }
+    }
+
+    private void StartNotificationPolling()
+    {
+        cancellationTokenSource = new CancellationTokenSource();
+
+        notificationTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+        _ = PollNotificationsAsync(cancellationTokenSource.Token);
+    }
+
+    private async Task PollNotificationsAsync(CancellationToken token)
+    {
+        try
+        {
+            while (await notificationTimer.WaitForNextTickAsync(token))
+            {
+                notifications = await NotificationRepository
+                    .GetUserNotifications(user.Id_User);
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // normal ao fechar página
         }
     }
 
@@ -289,6 +325,13 @@
         notifications.Clear();
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        cancellationTokenSource?.Cancel();
+        notificationTimer?.Dispose();
+        cancellationTokenSource?.Dispose();
     }
 }
 
