@@ -163,7 +163,7 @@ namespace BlazorAppFood.Repositories
         {
             using (var conn = new SqlConnection(_configuration._value))
             {
-                // Se a senha estiver vazia ou nula, não a atualizamos
+                
                 var query = @"UPDATE Users 
                       SET Username = @Username, 
                           Email = @Email, 
@@ -175,7 +175,7 @@ namespace BlazorAppFood.Repositories
                 {
                     user.Username,
                     user.Email,
-                    user.Password,  // A senha só será alterada se ela não for nula ou vazia
+                    user.Password,  
                     user.UserPhoto,
                     user.Id_User
                 });
@@ -217,9 +217,6 @@ namespace BlazorAppFood.Repositories
             }
         }
 
-        // Atualiza apenas a foto do utilizador (guardada como data URL base64 em UserPhoto).
-        // Existe para que o fluxo de mudar foto não dependa de Email/Password estarem
-        // carregados em memória — só toca na coluna UserPhoto.
         public async Task<bool> UpdateUserPhoto(int userId, string photoBase64)
         {
             using (var conn = new SqlConnection(_configuration._value))
@@ -263,6 +260,50 @@ namespace BlazorAppFood.Repositories
                 var users = await conn.QueryAsync<User>(query);
 
                 return users.ToList();
+            }
+        }
+        
+        public async Task<string?> GetSecurityQuestion(string email)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                const string query = "SELECT SecurityQuestion FROM Users WHERE LOWER(Email) = LOWER(@Email)";
+                var question = await conn.QuerySingleOrDefaultAsync<string?>(query, new { Email = email });
+                return question;
+            }
+        }
+        public async Task<bool> ValidateSecurityAnswer(string email, string answer)
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                const string query = "SELECT SecurityAnswerHash FROM Users WHERE LOWER(Email) = LOWER(@Email)";
+                var hash = await conn.QuerySingleOrDefaultAsync<string?>(query, new { Email = email });
+
+                if (string.IsNullOrEmpty(hash))
+                    return false;
+
+                return BCrypt.Net.BCrypt.Verify(answer.Trim().ToLower(), hash);
+            }
+        }
+
+        public async Task<bool> ResetPassword(string email, string newPassword)
+        {
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                const string query = @"
+            UPDATE Users
+            SET Password = @Password
+            WHERE LOWER(Email) = LOWER(@Email)";
+
+                int rows = await conn.ExecuteAsync(query, new
+                {
+                    Password = hashedPassword,
+                    Email = email
+                });
+
+                return rows > 0;
             }
         }
     }

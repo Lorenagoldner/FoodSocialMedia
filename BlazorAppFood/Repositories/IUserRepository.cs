@@ -23,5 +23,9 @@ namespace BlazorAppFood.Repositories
         Task<bool> UpdateUserPhoto(int userId, string photoBase64);
         Task<List<Tag>> GetUserTags(int userId);
         Task<List<User>> GetAllUsers();
+        Task<string?> GetSecurityQuestion(string email);
+        Task<bool> ValidateSecurityAnswer(string email, string answer);
+        Task<bool> ResetPassword(string email, string newPassword);
+
     }
 }

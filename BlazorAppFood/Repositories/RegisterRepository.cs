@@ -6,7 +6,6 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
 using System.Threading.Tasks;
-using Blazored.SessionStorage;
 using BlazorAppFood.Configuration;
 
 namespace BlazorAppFood.Repositories
@@ -21,6 +20,7 @@ namespace BlazorAppFood.Repositories
             _configuration = configuration;
             _sessionStorage = sessionStorage;
         }
+
         public async Task<bool> EmailExists(string email)
         {
             using (var conn = new SqlConnection(_configuration._value))
@@ -30,27 +30,38 @@ namespace BlazorAppFood.Repositories
                 return count > 0;
             }
         }
-        public async Task<bool> CreateRegist(string Username, string Email, string Password)
+
+        public async Task<bool> CreateRegist(
+            string Username,
+            string Email,
+            string Password,
+            string SecurityQuestion,
+            string SecurityAnswer)
         {
             if (await EmailExists(Email))
-            {
                 return false;
-            }
+
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(Password);
+
+            string hashedAnswer = BCrypt.Net.BCrypt.HashPassword(SecurityAnswer.Trim().ToLower());
+
             using (var conn = new SqlConnection(_configuration._value))
             {
-                const string query = @"INSERT INTO Users (Username, Email, Password)
-                    VALUES (@Username, @Email, @Password)";
+                const string query = @"
+                    INSERT INTO Users (Username, Email, Password, SecurityQuestion, SecurityAnswerHash)
+                    VALUES (@Username, @Email, @Password, @SecurityQuestion, @SecurityAnswerHash)";
+
                 await conn.ExecuteAsync(query, new
                 {
                     Username,
                     Email,
-                    Password = hashedPassword
+                    Password = hashedPassword,
+                    SecurityQuestion,
+                    SecurityAnswerHash = hashedAnswer
                 });
             }
+
             return true;
         }
     }
 }
-
-
