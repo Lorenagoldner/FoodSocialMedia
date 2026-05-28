@@ -26,7 +26,7 @@ namespace BlazorAppFood.Data
         public async Task<List<Notification>> GetUserNotifications(int userId)
         {
             return await _context.Notifications
-                .Where(n => n.RecipientUserId == userId)
+                .Where(n => n.RecipientUserId == userId && !n.IsRead)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
