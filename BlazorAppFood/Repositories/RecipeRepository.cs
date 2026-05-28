@@ -29,6 +29,7 @@ namespace BlazorAppFood.Repositories
         //Add 
         public async Task<bool> CreateRecipe(Recipe recipe)
         {
+            ValidateRecipe(recipe, requireImage: true);
             using (var conn = new SqlConnection(_configuration._value))
             {
                 await conn.OpenAsync();
@@ -119,7 +120,7 @@ namespace BlazorAppFood.Repositories
                     catch (Exception ex)
                     {
                         await transaction.RollbackAsync();
-                        Console.WriteLine($"Erro ao criar receita: {ex.Message}");
+                        Console.WriteLine($"Erro ao criar receita: {ex}");
                         return false;
                     }
                 }
@@ -225,6 +226,10 @@ namespace BlazorAppFood.Repositories
                 recipe.Difficulty = (DifficultyLevel)await conn.ExecuteScalarAsync<int>(
                     "SELECT ISNULL(Difficulty, 0) FROM Recipe WHERE Id_Recipe = @Id",
                     new { Id = id });
+
+                recipe.Image = await conn.ExecuteScalarAsync<byte[]>(
+                   "SELECT Image FROM Recipe WHERE Id_Recipe = @Id",
+                   new { Id = id });
             }
 
             return recipe;
@@ -252,9 +257,12 @@ namespace BlazorAppFood.Repositories
 
         public async Task<bool> UpdateRecipe(Recipe recipe)
         {
+            ValidateRecipe(recipe, requireImage: false);
+
             using (var conn = new SqlConnection(_configuration._value))
             {
                 await conn.OpenAsync();
+
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
@@ -702,5 +710,44 @@ namespace BlazorAppFood.Repositories
                 return recipes.ToList();
             }
         }
+
+        private void ValidateRecipe(Recipe recipe, bool requireImage)
+        {
+            if (recipe == null)
+                throw new ArgumentException("A receita não pode estar vazia.");
+
+            if (string.IsNullOrWhiteSpace(recipe.NameRecipe))
+                throw new ArgumentException("O nome da receita é obrigatório.");
+
+            if (recipe.NameRecipe.Length > 50)
+                throw new ArgumentException("O nome da receita não pode ter mais de 50 caracteres.");
+
+            if (string.IsNullOrWhiteSpace(recipe.Preparation))
+                throw new ArgumentException("A preparação é obrigatória.");
+
+            if (recipe.Preparation.Length > 4000)
+                throw new ArgumentException("A preparação não pode ter mais de 4000 caracteres.");
+
+            if (recipe.Prep_Time <= 0)
+                throw new ArgumentException("O tempo de preparação deve ser maior que zero.");
+
+            if (recipe.Cook_Time <= 0)
+                throw new ArgumentException("O tempo de cozinhar deve ser maior que zero.");
+
+            if (recipe.Servings < 0)
+                throw new ArgumentException("O rendimento não pode ser negativo.");
+
+            if (recipe.Ingredients == null || !recipe.Ingredients.Any(i => !string.IsNullOrWhiteSpace(i.Name)))
+                throw new ArgumentException("A receita deve ter pelo menos um ingrediente.");
+
+            if ((recipe.TagIds == null || !recipe.TagIds.Any()) &&
+                (recipe.Tags == null || !recipe.Tags.Any()))
+            {
+                throw new ArgumentException("A receita deve ter pelo menos uma tag.");
+            }
+            if (requireImage && (recipe.Image == null || recipe.Image.Length == 0))
+                throw new ArgumentException("A receita deve ter uma foto.");
+        }
+
     }
 }
