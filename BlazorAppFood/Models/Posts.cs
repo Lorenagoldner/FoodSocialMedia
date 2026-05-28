@@ -12,6 +12,7 @@ namespace BlazorAppFood.Models
         public int IdRecipe { get; set; }
 
         public Recipe Recipe { get; set; } = new Recipe();
+        public DateTime DatePublication { get; set; }
 
     }
 }

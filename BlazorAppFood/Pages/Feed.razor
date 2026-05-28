@@ -168,9 +168,11 @@
                                                         <img src="img/avatar2.jpg" alt="" class="rounded-circle" width="55" height="55">
                                                     }                                       
                                                 </div>
-                                            <div class="col d-flex align-items-center" style="cursor: pointer;" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
-                                                    <p class="card-text">@recipe.Username </p>
-
+                                            <div class="col" style="cursor: pointer;" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
+                                                <p class="card-text" mb-0>@recipe.Username </p>
+                                                    <small class="text-muted">
+                                                        @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")
+                                                    </small>
                                                     @*<p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>*@
                                                 </div>
                                             </div>
@@ -338,10 +340,16 @@
         if (currentFeedMode == FeedMode.Global)
         {
             listPosts = await RecipeRepository.GetAllRecipes();
+            listPosts = listPosts
+               .OrderByDescending(r => r.PublishedDate)
+               .ToList();
         }
         else
         {
             listPosts = await UserRepository.GetFollowingRecipes(user.Email);
+            listPosts = listPosts
+               .OrderByDescending(r => r.PublishedDate)
+               .ToList();
         }
 
         await EnrichRecipes(listPosts);

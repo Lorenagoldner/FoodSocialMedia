@@ -29,15 +29,16 @@ namespace BlazorAppFood.Repositories
             using (var conn = new SqlConnection(_configuration._value))
 
             {
-                string sQuery = @"INSERT INTO Comments (IdRecipe, IdUser, Message) 
-                                  VALUES (@idRecipe, @idUser, @message)";
+                string sQuery = @"INSERT INTO Comments (IdRecipe, IdUser, Message, PublishedDate) 
+                                  VALUES (@idRecipe, @idUser, @message, @publishedDate)";
               
                 var result = await conn.ExecuteAsync(sQuery,
                     new
                     {
                         IdRecipe = idRecipe,
                         IdUser = idUser,
-                        Message = message
+                        Message = message,
+                        PublishedDate = DateTime.Now
                     });
 
                 //buscar dono da receita
