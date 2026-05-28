@@ -116,8 +116,14 @@
                                     <img src="img/avatar2.jpg" alt="" class="rounded-circle" width="55" height="55">
                                 }
                             </div>
-                            <div class="col" style="cursor: pointer; color: black;" onmouseover="this.style.color='blue';" onmouseout="this.style.color='black';" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
+                            <div class="col" style="cursor: pointer; color: black;" 
+                                    onmouseover="this.style.color='blue';" 
+                                    onmouseout="this.style.color='black';" 
+                                    @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
                                 <h6>@recipe.Username</h6>
+                                <small class="text-muted">
+                                    @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")
+                                </small>
                             </div>
                         </div>
 
