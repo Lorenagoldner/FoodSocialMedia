@@ -246,12 +246,12 @@
     {
         cancellationTokenSource = new CancellationTokenSource();
 
-        notificationTimer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        notificationTimer = new PeriodicTimer(TimeSpan.FromSeconds(30)); //verifica a cada 30 segundos
 
         _ = PollNotificationsAsync(cancellationTokenSource.Token);
     }
 
-    private async Task PollNotificationsAsync(CancellationToken token)
+    private async Task PollNotificationsAsync(CancellationToken token) //para atualizar notificações em tempo real sem recarregar a página
     {
         try
         {
