@@ -53,8 +53,8 @@ namespace BlazorAppFood.Repositories
                         recipe.Id_Recipe = recp_id;
 
                         await conn.ExecuteAsync(
-                            "UPDATE Recipe SET Servings = @Servings, Difficulty = @Difficulty WHERE Id_Recipe = @Id_Recipe",
-                            new { Servings = recipe.Servings, Difficulty = (int)recipe.Difficulty, Id_Recipe = recp_id },
+                            "UPDATE Recipe SET Servings = @Servings, Difficulty = @Difficulty, PublishedDate = @PublishedDate WHERE Id_Recipe = @Id_Recipe",
+                            new { Servings = recipe.Servings, Difficulty = (int)recipe.Difficulty, PublishedDate = DateTime.Now, Id_Recipe = recp_id },
                             transaction,
                             commandType: System.Data.CommandType.Text);
 
