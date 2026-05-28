@@ -340,10 +340,16 @@
         if (currentFeedMode == FeedMode.Global)
         {
             listPosts = await RecipeRepository.GetAllRecipes();
+            listPosts = listPosts
+               .OrderByDescending(r => r.PublishedDate)
+               .ToList();
         }
         else
         {
             listPosts = await UserRepository.GetFollowingRecipes(user.Email);
+            listPosts = listPosts
+               .OrderByDescending(r => r.PublishedDate)
+               .ToList();
         }
 
         await EnrichRecipes(listPosts);
