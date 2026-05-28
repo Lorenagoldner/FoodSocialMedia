@@ -39,14 +39,49 @@
                         <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
                     </div>
 
-                    <div class="mb-3">
-                        <label for="inputPassword" class="form-label">Password</label>
-                        <InputText @bind-Value="registerRequest.Password"
-                                   type="password"
-                                   class="form-control"
-                                   id="inputPassword" />
-                        <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
-                    </div>
+                   <div class="mb-3">
+    <label for="inputPassword" class="form-label">Password</label>
+                        <input type="password"
+                               class="form-control"
+                               id="inputPassword"
+                               value="@registerRequest.Password"
+                               @oninput="@(e => registerRequest.Password = e.Value?.ToString())" />
+    <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
+
+    @if (!string.IsNullOrEmpty(registerRequest.Password))
+    {
+        <!-- Barra de força -->
+        <div class="mt-2">
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar @PasswordStrengthColor"
+                     style="width: @(PasswordStrengthPercent)%">
+                </div>
+            </div>
+            <small class="@("text-" + PasswordStrengthColor.Replace("bg-",""))">
+                @PasswordStrengthLabel
+            </small>
+        </div>
+
+        <!-- Checklist de requisitos -->
+        <ul class="list-unstyled mt-2 small">
+            <li class="@(HasMinLength ? "text-success" : "text-muted")">
+                @(HasMinLength ? "✔" : "✖") Pelo menos 8 caracteres
+            </li>
+            <li class="@(HasUpper ? "text-success" : "text-muted")">
+                @(HasUpper ? "✔" : "✖") Pelo menos uma letra maiúscula
+            </li>
+            <li class="@(HasLower ? "text-success" : "text-muted")">
+                @(HasLower ? "✔" : "✖") Pelo menos uma letra minúscula
+            </li>
+            <li class="@(HasDigit ? "text-success" : "text-muted")">
+                @(HasDigit ? "✔" : "✖") Pelo menos um número
+            </li>
+            <li class="@(HasSpecial ? "text-success" : "text-muted")">
+                @(HasSpecial ? "✔" : "✖") Pelo menos um carácter especial
+            </li>
+        </ul>
+    }
+</div>
 
                     <div class="mb-3">
                         <label for="inputConfirmPassword" class="form-label">Confirm Password</label>
@@ -68,7 +103,7 @@
                                 <option value="@question">@question</option>
                             }
                         </InputSelect>
-
+                        
                         @if (showQuestionError)
                         {
                             <span class="text-danger small d-block mt-1">
@@ -94,7 +129,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark">Sign Up</button>
+                    <button type="submit" class="btn btn-dark"
+                                disabled="@(!(HasMinLength && HasUpper && HasLower && HasDigit && HasSpecial))">
+                        Sign Up
+                    </button>
                     <span>Already have an account?</span>
                 </div>
 
@@ -113,6 +151,41 @@
     public string errorMessage = "";
     private bool isOpen = false;
     private bool showQuestionError = false;
+    // Requisitos individuais
+    private bool HasMinLength => (registerRequest.Password?.Length ?? 0) >= 8;
+    private bool HasUpper => registerRequest.Password?.Any(char.IsUpper) ?? false;
+    private bool HasLower => registerRequest.Password?.Any(char.IsLower) ?? false;
+    private bool HasDigit => registerRequest.Password?.Any(char.IsDigit) ?? false;
+    private bool HasSpecial => registerRequest.Password?.Any(c => !char.IsLetterOrDigit(c)) ?? false;
+
+    // Conta quantos requisitos estão cumpridos
+    private int MetCount => new[] { HasMinLength, HasUpper, HasLower, HasDigit, HasSpecial }
+                                .Count(x => x);
+
+    // Força da password
+    private string PasswordStrengthLabel => MetCount switch
+    {
+        <= 2 => "Fraca",
+        <= 4 => "Média",
+        _ => "Forte"
+    };
+
+    private string PasswordStrengthColor => MetCount switch
+    {
+        <= 2 => "bg-danger",
+        <= 4 => "bg-warning",
+        _ => "bg-success"
+    };
+
+    private int PasswordStrengthPercent => MetCount switch
+    {
+        1 => 20,
+        2 => 40,
+        3 => 60,
+        4 => 80,
+        5 => 100,
+        _ => 0
+    };
 
     private readonly List<string> securityQuestions = new()
     {
