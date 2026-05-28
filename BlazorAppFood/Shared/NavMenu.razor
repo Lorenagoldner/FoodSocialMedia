@@ -95,14 +95,28 @@
 
                 @if (notifications.Any())
                 {
+                    <button class="list-group-item list-group-item-action text-danger"
+                            @onclick="ClearAllNotifications">
+                        Limpar todas
+                    </button>
+
                     @foreach (var notification in notifications
                         .OrderByDescending(n => n.CreatedAt)
                         .Take(10))
                     {
-                        <button class="list-group-item list-group-item-action"
-                                @onclick="() => OpenNotification(notification)">
-                            @notification.Message
-                        </button>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+
+                            <span style="cursor:pointer"
+                                  @onclick="() => OpenNotification(notification)">
+                                @notification.Message
+                            </span>
+
+                            <button class="btn btn-sm btn-outline-secondary ms-2"
+                                    @onclick="() => ClearNotification(notification)">
+                                ✓
+                            </button>
+
+                        </div>
                     }
                 }
                 else
@@ -239,6 +253,42 @@
         await ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
             .MarkUserAsLoggedOut();
         NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
+    private async Task MarkNotificationAsRead(Notification notification)
+    {
+        await NotificationRepository.MarkAsRead(notification.Id);
+
+        notifications.Remove(notification);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task MarkAllNotificationsAsRead()
+    {
+        await NotificationRepository.MarkAllAsRead(user.Id_User);
+
+        notifications.Clear();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ClearNotification(Notification notification)
+    {
+        await NotificationRepository.MarkAsRead(notification.Id);
+
+        notifications.Remove(notification);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ClearAllNotifications()
+    {
+        await NotificationRepository.MarkAllAsRead(user.Id_User);
+
+        notifications.Clear();
+
+        await InvokeAsync(StateHasChanged);
     }
 }
 

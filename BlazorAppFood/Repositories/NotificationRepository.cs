@@ -43,5 +43,19 @@ namespace BlazorAppFood.Data
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task MarkAllAsRead(int userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.RecipientUserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

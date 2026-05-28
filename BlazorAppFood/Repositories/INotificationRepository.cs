@@ -11,5 +11,6 @@ namespace BlazorAppFood.Data
             Task<List<Notification>> GetUserNotifications(int userId);
 
             Task MarkAsRead(int notificationId);
+            Task MarkAllAsRead(int userId);
     }
 }
