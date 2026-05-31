@@ -28,8 +28,6 @@ namespace BlazorAppFood.Models
         public List<int> TagIds { get; set; } = new List<int>();
         public List<Tag> Tags { get; set; } = new List<Tag>();
 
-        public List<Ingredient> Ingredient { get; set; } = new();
-
         public int Servings { get; set; }
         public DifficultyLevel Difficulty { get; set; }
 
