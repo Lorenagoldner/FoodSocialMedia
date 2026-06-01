@@ -6,36 +6,108 @@
 @inject IRecipeRepository RecipeRepository
 @inject NavigationManager NavigationManager
 
-<h1>Apagar Receita</h1>
-<h2 style="color:red;text-align:center;font-weight:bolder;text-decoration:underline"> Apagar Permanentemente? </h2>
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="icon-circle">
+            <span>🗑</span>
+        </div>
 
+        <h2>Delete recipe?</h2>
+        <p>
+            Are you sure you want to permanently delete
+            <strong>@recipe.NameRecipe</strong>?
+            This action cannot be undone.
+        </p>
 
-@*TITULO RECEITA*@
-<h3 style="font-weight:bold;text-decoration:underline"> @recipe.NameRecipe </h3>
+        <div class="modal-actions">
+            <button class="btn-cancel" @onclick="Cancel">Cancel</button>
+            <button class="btn-delete" @onclick="Delete">🗑 Delete</button>
+        </div>
+    </div>
+</div>
 
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
-@*CAMPO DE INFO GERAL*@
-<h5 class="font-weight-bold">Detalhes</h5>
+    .modal-box {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+    }
 
+    .icon-circle {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #fdecea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 22px;
+    }
 
-@*TEMPO DE PREPARAÇÃO*@
-<p> Tempo de Preparação: @TimeFormatter.FormatMinutes(recipe.Prep_Time) </p>
+    h2 {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 0 0 0.5rem;
+    }
 
+    p {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 0 0 1.75rem;
+        line-height: 1.6;
+    }
 
-@*TEMPO DE COZEDURA*@
-<p> Tempo de Cozedura: @TimeFormatter.FormatMinutes(recipe.Cook_Time) </p>
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+    }
 
+    .btn-cancel {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background: #f5f5f5;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
 
-@*PASSO  A PASSO*@
-<h5 class="font-weight-bold">Passo a Passo:</h5>
-<p> @recipe.Preparation </p>
+        .btn-cancel:hover {
+            background: #eee;
+        }
 
-<input type="button" value="Apagar" @onclick="@Delete" />
-<input type="button" value="Cancelar" @onclick="@Cancel" />
+    .btn-delete {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background: #fdecea;
+        color: #c0392b;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
 
+        .btn-delete:hover {
+            background: #f5c6c6;
+        }
+</style>
 
 @code {
-    //Create a new, empty Recipe object
     Recipe recipe = new Recipe();
 
     [Parameter]
@@ -48,13 +120,12 @@
 
     protected async Task Delete()
     {
-
         await RecipeRepository.DeleteRecipe(id);
-        NavigationManager.NavigateTo("/showrecipe");
+        NavigationManager.NavigateTo($"/myrecipes/{recipe.Id_User}");
     }
 
     void Cancel()
     {
-        NavigationManager.NavigateTo("/showrecipe");
+        NavigationManager.NavigateTo($"/myrecipes/{recipe.Id_User}");
     }
 }
