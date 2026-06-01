@@ -258,6 +258,20 @@
                 .Select(tag => tag.IdTag)
                 .ToList();
 
+        if (recipe.Image == null || recipe.Image.Length == 0)
+        {
+            errorMessage = "A receita deve ter uma foto.";
+            await ScrollToTop();
+            return;
+        }
+
+        if (recipe.TagIds == null || !recipe.TagIds.Any())
+        {
+            errorMessage = "A receita deve ter pelo menos uma categoria.";
+            await ScrollToTop();
+            return;
+        }
+
         if (recipe.Ingredients == null ||
             !recipe.Ingredients.Any(i => !string.IsNullOrWhiteSpace(i.Name)))
         {
