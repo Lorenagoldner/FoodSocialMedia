@@ -268,3 +268,134 @@
   .fd-nav__inner { grid-template-columns: auto 1fr auto auto; gap: 10px; }
   .fd-search { display: none; }
 }
+
+/* ---------- grid helpers ---------- */
+.fd-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.fd-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+@media (max-width: 900px) { .fd-grid-3 { grid-template-columns: 1fr; } .fd-grid-2 { grid-template-columns: 1fr; } }
+.fd-mt-2 { margin-top: 16px; }
+.fd-mt-4 { margin-top: 32px; }
+
+/* ---------- hero banner ---------- */
+.fd-banner {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  min-height: 220px;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(135deg, #FF6B35, #F2C744);
+}
+.fd-banner__overlay {
+  background: linear-gradient(to top, rgba(0,0,0,.65) 60%, transparent);
+  padding: 28px 32px;
+  width: 100%;
+  color: #fff;
+}
+.fd-banner__label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; opacity: .85; margin-bottom: 4px; display: block; }
+.fd-banner__title { font-family: var(--font-display); font-size: 32px; font-weight: 800; margin: 0 0 4px; color: #fff; }
+.fd-banner__sub { font-size: 14px; opacity: .9; max-width: 36ch; margin: 0; }
+
+/* ---------- icon buttons (sidebar) ---------- */
+.fd-icon-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 18px;
+  text-decoration: none !important;
+  border: 1px solid var(--line);
+  transition: background .2s ease;
+}
+.fd-icon-btn:hover { background: var(--line); color: var(--ink) !important; }
+.fd-icon-btn--orange { background: var(--orange); color: #fff !important; border-color: var(--orange); }
+.fd-icon-btn--orange:hover { background: var(--orange-2); }
+
+/* ---------- thumbnail (in lists) ---------- */
+.fd-thumb {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  overflow: hidden;
+}
+.fd-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- forms ---------- */
+.fd-form-group { margin-bottom: 18px; }
+.fd-form-label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+.fd-form-control,
+.fd-form-select {
+  width: 100%;
+  padding: 9px 13px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  box-sizing: border-box;
+}
+.fd-form-control:focus,
+.fd-form-select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255,107,53,.12);
+}
+.fd-form-control::placeholder { color: var(--muted-2); }
+textarea.fd-form-control { resize: vertical; min-height: 120px; }
+.fd-input-row { display: flex; gap: 8px; align-items: center; }
+.fd-input-row .fd-form-control,
+.fd-input-row .fd-form-select { flex: 1; }
+
+/* ---------- accordion (fd-acc) ---------- */
+.fd-acc {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.fd-acc summary {
+  padding: 10px 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fd-acc summary::-webkit-details-marker { display: none; }
+.fd-acc summary::after { content: '\203A'; font-size: 18px; color: var(--muted); transition: transform .2s; }
+.fd-acc[open] summary::after { transform: rotate(90deg); }
+.fd-acc__body { padding: 12px 14px; font-size: 13.5px; color: var(--ink-2); }
+.fd-acc__checks { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+.fd-acc__checks label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.fd-acc__checks input[type="checkbox"] { accent-color: var(--orange); width: 14px; height: 14px; }
+
+/* ---------- badges ---------- */
+.fd-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.fd-badge-outline { background: #fff; border: 1.5px solid var(--line-2); color: var(--ink-2); }
+.fd-badge-outline button { background: none; border: none; cursor: pointer; padding: 0; color: var(--muted); font-size: 12px; line-height: 1; }
+.fd-badge-outline button:hover { color: var(--red); }
