@@ -1,4 +1,4 @@
-﻿@page "/myrecipes/{userId:int}"
+@page "/myrecipes/{userId:int}"
 
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
@@ -30,12 +30,13 @@
                 }
                 else
                 {
-                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px">
+                    <div class="fd-grid-2">
                         @foreach (var rec in recipe)
                         {
                             var imgSrc = rec.Image != null
                                 ? $"data:image/jpeg;base64,{Convert.ToBase64String(rec.Image)}"
                                 : null;
+                            var imgClass = ImgClasses[rec.Id_Recipe % ImgClasses.Length];
 
                             <div class="fd-card">
                                 @if (imgSrc != null)
@@ -45,7 +46,7 @@
                                 }
                                 else
                                 {
-                                    <div class="fd-img fd-img--a" style="height:200px;border-top-left-radius:var(--r-lg);border-top-right-radius:var(--r-lg)">
+                                    <div class="fd-img @imgClass" style="height:200px;border-top-left-radius:var(--r-lg);border-top-right-radius:var(--r-lg)">
                                         <svg viewBox="0 0 200 140" width="60%"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="100" cy="80" r="40" fill="#fff"/></g></svg>
                                     </div>
                                 }
@@ -64,8 +65,8 @@
                                                 @onclick="@(() => NavigationManager.NavigateTo($"/editrecipe/{rec.Id_Recipe}"))">
                                             <i class="bi bi-pencil"></i> Editar
                                         </button>
-                                        <button style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;font-size:13px;font-family:var(--font-display);font-weight:600;border-radius:999px;border:none;background:#DC3545;color:#fff;cursor:pointer"
-                                                @onclick="@(() => NavigationManager.NavigateTo($"/deleterecipe/{rec.Id_Recipe}"))">
+                                        <button class="fd-btn" style="padding:6px 12px;font-size:13px;background:#DC3545;color:#fff;border-color:#DC3545"
+                                                @onclick="@(() => AskDelete(rec.Id_Recipe, rec.NameRecipe))">
                                             <i class="bi bi-trash"></i> Eliminar
                                         </button>
                                     </div>
@@ -83,11 +84,39 @@
     </div>
 </div>
 
+<!-- Delete confirmation modal -->
+@if (showDeleteModal)
+{
+    <div class="fd-modal-overlay">
+        <div class="fd-modal">
+            <h5>Eliminar receita?</h5>
+            <p style="color:var(--ink-2);font-size:14px;margin-bottom:4px">
+                <strong>@deleteRecipeName</strong>
+            </p>
+            <p style="color:var(--muted);font-size:13px">
+                Esta ação não pode ser revertida. A receita será removida do teu mural e dos favoritos de quem a guardou.
+            </p>
+            <div class="fd-modal-footer">
+                <button class="fd-btn fd-btn-outline" @onclick="CancelDelete">Cancelar</button>
+                <button class="fd-btn" style="background:#DC3545;color:#fff;border-color:#DC3545" @onclick="ConfirmDelete">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public int userId { get; set; }
 
     private IEnumerable<Recipe> recipe;
     private string userName = "";
+
+    private bool showDeleteModal = false;
+    private int deleteRecipeId;
+    private string deleteRecipeName = "";
+
+    private static readonly string[] ImgClasses = { "fd-img--a", "fd-img--b", "fd-img--c", "fd-img--d", "fd-img--e" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,5 +132,21 @@
             recipe = new List<Recipe>();
             userName = "desconhecido";
         }
+    }
+
+    private void AskDelete(int recipeId, string recipeName)
+    {
+        deleteRecipeId = recipeId;
+        deleteRecipeName = recipeName;
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete() => showDeleteModal = false;
+
+    private async Task ConfirmDelete()
+    {
+        await RecipeRepository.DeleteRecipe(deleteRecipeId);
+        showDeleteModal = false;
+        recipe = await RecipeRepository.GetRecipesByUserId(userId);
     }
 }

@@ -1,4 +1,4 @@
-﻿@using BlazorAppFood.Auth
+@using BlazorAppFood.Auth
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
 @inject IRegisterRepository RegisterRepository
@@ -7,185 +7,124 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject ILoginRepository LoginRepository
 
-<div class="modal fade @(isOpen ? "show d-block" : "")"
-     tabindex="-1"
-     aria-labelledby="registerModalLabel">
+@if (isOpen)
+{
+    <div class="fd-auth-overlay">
+        <div class="fd-auth-panel" style="max-width:480px;max-height:90vh;overflow-y:auto">
+            <button class="fd-auth-close" @onclick="CloseModal" aria-label="Fechar">
+                <i class="bi bi-x-lg"></i>
+            </button>
 
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
+            <h3>Criar conta no Foodie</h3>
+            <p class="fd-muted fd-small" style="margin-bottom:20px">Dois minutos, quatro campos, sem cartão de crédito.</p>
 
-            <div class="modal-header">
-                <h5 class="modal-title">Register</h5>
-                <button type="button" class="btn-close" @onclick="CloseModal"></button>
-            </div>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;margin-bottom:14px">
+                    <i class="bi bi-exclamation-circle"></i> @errorMessage
+                </div>
+            }
 
             <EditForm Model="@registerRequest" OnValidSubmit="@MakeNewRegist">
                 <DataAnnotationsValidator />
 
-                <div class="modal-body px-4 py-3">
-                    <div class="mb-3">
-                        <label for="inputUsername" class="form-label">Username</label>
-                        <InputText @bind-Value="registerRequest.Username"
-                                   class="form-control"
-                                   id="inputUsername" />
-                        <ValidationMessage For="@(() => registerRequest.Username)" class="text-danger" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="inputEmail" class="form-label">Email Address</label>
-                        <InputText @bind-Value="registerRequest.Email"
-                                   class="form-control"
-                                   id="inputEmail" />
-                        <ValidationMessage For="@(() => registerRequest.Email)" class="text-danger" />
-                    </div>
-
-                   <div class="mb-3">
-    <label for="inputPassword" class="form-label">Password</label>
-                        <input type="password"
-                               class="form-control"
-                               id="inputPassword"
-                               value="@registerRequest.Password"
-                               @oninput="@(e => registerRequest.Password = e.Value?.ToString())" />
-    <ValidationMessage For="@(() => registerRequest.Password)" class="text-danger" />
-
-    @if (!string.IsNullOrEmpty(registerRequest.Password))
-    {
-        <!-- Barra de força -->
-        <div class="mt-2">
-            <div class="progress" style="height: 6px;">
-                <div class="progress-bar @PasswordStrengthColor"
-                     style="width: @(PasswordStrengthPercent)%">
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Nome de utilizador</label>
+                    <InputText @bind-Value="registerRequest.Username" class="fd-form-control" placeholder="maya_cozinha" />
+                    <ValidationMessage For="@(() => registerRequest.Username)" style="color:#B91C1C;font-size:12px" />
                 </div>
-            </div>
-            <small class="@("text-" + PasswordStrengthColor.Replace("bg-",""))">
-                @PasswordStrengthLabel
-            </small>
-        </div>
 
-        <!-- Checklist de requisitos -->
-        <ul class="list-unstyled mt-2 small">
-            <li class="@(HasMinLength ? "text-success" : "text-muted")">
-                @(HasMinLength ? "✔" : "✖") Pelo menos 8 caracteres
-            </li>
-            <li class="@(HasUpper ? "text-success" : "text-muted")">
-                @(HasUpper ? "✔" : "✖") Pelo menos uma letra maiúscula
-            </li>
-            <li class="@(HasLower ? "text-success" : "text-muted")">
-                @(HasLower ? "✔" : "✖") Pelo menos uma letra minúscula
-            </li>
-            <li class="@(HasDigit ? "text-success" : "text-muted")">
-                @(HasDigit ? "✔" : "✖") Pelo menos um número
-            </li>
-            <li class="@(HasSpecial ? "text-success" : "text-muted")">
-                @(HasSpecial ? "✔" : "✖") Pelo menos um carácter especial
-            </li>
-        </ul>
-    }
-</div>
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Email</label>
+                    <InputText @bind-Value="registerRequest.Email" class="fd-form-control" placeholder="ola@foodie.pt" />
+                    <ValidationMessage For="@(() => registerRequest.Email)" style="color:#B91C1C;font-size:12px" />
+                </div>
 
-                    <div class="mb-3">
-                        <label for="inputConfirmPassword" class="form-label">Confirm Password</label>
-                        <InputText @bind-Value="registerRequest.ConfirmPassword"
-                                   type="password"
-                                   class="form-control"
-                                   id="inputConfirmPassword" />
-                        <ValidationMessage For="@(() => registerRequest.ConfirmPassword)" class="text-danger" />
-                    </div>
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Password</label>
+                    <input type="password" class="fd-form-control"
+                           value="@registerRequest.Password"
+                           @oninput="@(e => registerRequest.Password = e.Value?.ToString())"
+                           placeholder="Mínimo 8 caracteres" />
+                    <ValidationMessage For="@(() => registerRequest.Password)" style="color:#B91C1C;font-size:12px" />
 
-                    <hr class="my-3" />
-
-                    <div class="mb-3">
-                        <label for="securityQuestion" class="form-label fw-semibold">Security Question</label>
-                        <InputSelect @bind-Value="registerRequest.SecurityQuestion" class="form-select" id="securityQuestion">
-                            <option value="">Choose a Question...</option>
-                            @foreach (var question in securityQuestions)
-                            {
-                                <option value="@question">@question</option>
-                            }
-                        </InputSelect>
-                        
-                        @if (showQuestionError)
-                        {
-                            <span class="text-danger small d-block mt-1">
-                                Please select a security question.
-                            </span>
-                        }
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="inputSecurityAnswer" class="form-label">Your Answer</label>
-                        <InputText @bind-Value="registerRequest.SecurityAnswer"
-                                   class="form-control"
-                                   id="inputSecurityAnswer"
-                                   placeholder="Type your answer" />
-                        <ValidationMessage For="@(() => registerRequest.SecurityAnswer)" class="text-danger" />
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(errorMessage))
+                    @if (!string.IsNullOrEmpty(registerRequest.Password))
                     {
-                        <div class="alert alert-danger">@errorMessage</div>
+                        <div class="fd-pw-bar" style="margin-top:8px">
+                            <div class="fd-pw-bar__fill" style="width:@(PasswordStrengthPercent)%;background:@PasswordStrengthColor"></div>
+                        </div>
+                        <small style="font-size:12px;color:@PasswordStrengthColor">@PasswordStrengthLabel</small>
+                        <ul class="fd-pw-checks">
+                            <li class="@(HasMinLength ? "ok" : "")">@(HasMinLength ? "✔" : "✖") Pelo menos 8 caracteres</li>
+                            <li class="@(HasUpper ? "ok" : "")">@(HasUpper ? "✔" : "✖") Letra maiúscula</li>
+                            <li class="@(HasLower ? "ok" : "")">@(HasLower ? "✔" : "✖") Letra minúscula</li>
+                            <li class="@(HasDigit ? "ok" : "")">@(HasDigit ? "✔" : "✖") Um número</li>
+                            <li class="@(HasSpecial ? "ok" : "")">@(HasSpecial ? "✔" : "✖") Carácter especial</li>
+                        </ul>
                     }
-
                 </div>
 
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark"
-                                disabled="@(!(HasMinLength && HasUpper && HasLower && HasDigit && HasSpecial))">
-                        Sign Up
-                    </button>
-                    <span>Already have an account?</span>
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Confirmar password</label>
+                    <InputText @bind-Value="registerRequest.ConfirmPassword" type="password" class="fd-form-control" placeholder="Repete a password" />
+                    <ValidationMessage For="@(() => registerRequest.ConfirmPassword)" style="color:#B91C1C;font-size:12px" />
                 </div>
 
+                <div style="border-top:1px solid var(--line);margin:16px 0"></div>
+
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Pergunta de segurança</label>
+                    <InputSelect @bind-Value="registerRequest.SecurityQuestion" class="fd-form-select">
+                        <option value="">Escolhe uma pergunta...</option>
+                        @foreach (var question in securityQuestions)
+                        {
+                            <option value="@question">@question</option>
+                        }
+                    </InputSelect>
+                    @if (showQuestionError)
+                    {
+                        <small style="color:#B91C1C;font-size:12px">Por favor seleciona uma pergunta.</small>
+                    }
+                </div>
+
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Resposta</label>
+                    <InputText @bind-Value="registerRequest.SecurityAnswer" class="fd-form-control" placeholder="A tua resposta" />
+                    <ValidationMessage For="@(() => registerRequest.SecurityAnswer)" style="color:#B91C1C;font-size:12px" />
+                </div>
+
+                <button type="submit" class="fd-btn fd-btn-primary fd-btn-block" style="padding:12px;margin-top:4px"
+                        disabled="@(!(HasMinLength && HasUpper && HasLower && HasDigit && HasSpecial))">
+                    Criar conta
+                </button>
+
+                <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
+                    Já tens conta?
+                    <a href="javascript:void(0)" @onclick="SwitchToLogin" style="color:var(--orange)">Faz login</a>
+                </p>
             </EditForm>
         </div>
     </div>
-</div>
-
-@if (isOpen)
-{
-    <div class="modal-backdrop fade show"></div>
 }
 
 @code {
+    [Parameter] public EventCallback OnOpenLogin { get; set; }
+
     public RegisterRequest registerRequest = new RegisterRequest();
     public string errorMessage = "";
     private bool isOpen = false;
     private bool showQuestionError = false;
-    // Requisitos individuais
+
     private bool HasMinLength => (registerRequest.Password?.Length ?? 0) >= 8;
     private bool HasUpper => registerRequest.Password?.Any(char.IsUpper) ?? false;
     private bool HasLower => registerRequest.Password?.Any(char.IsLower) ?? false;
     private bool HasDigit => registerRequest.Password?.Any(char.IsDigit) ?? false;
     private bool HasSpecial => registerRequest.Password?.Any(c => !char.IsLetterOrDigit(c)) ?? false;
+    private int MetCount => new[] { HasMinLength, HasUpper, HasLower, HasDigit, HasSpecial }.Count(x => x);
 
-    // Conta quantos requisitos estão cumpridos
-    private int MetCount => new[] { HasMinLength, HasUpper, HasLower, HasDigit, HasSpecial }
-                                .Count(x => x);
-
-    // Força da password
-    private string PasswordStrengthLabel => MetCount switch
-    {
-        <= 2 => "Fraca",
-        <= 4 => "Média",
-        _ => "Forte"
-    };
-
-    private string PasswordStrengthColor => MetCount switch
-    {
-        <= 2 => "bg-danger",
-        <= 4 => "bg-warning",
-        _ => "bg-success"
-    };
-
-    private int PasswordStrengthPercent => MetCount switch
-    {
-        1 => 20,
-        2 => 40,
-        3 => 60,
-        4 => 80,
-        5 => 100,
-        _ => 0
-    };
+    private string PasswordStrengthLabel => MetCount switch { <= 2 => "Fraca", <= 4 => "Média", _ => "Forte" };
+    private string PasswordStrengthColor => MetCount switch { <= 2 => "#DC3545", <= 4 => "#F2C744", _ => "#4FB364" };
+    private int PasswordStrengthPercent => MetCount switch { 1 => 20, 2 => 40, 3 => 60, 4 => 80, 5 => 100, _ => 0 };
 
     private readonly List<string> securityQuestions = new()
     {
@@ -215,59 +154,32 @@
         StateHasChanged();
     }
 
+    private async Task SwitchToLogin()
+    {
+        CloseModal();
+        await OnOpenLogin.InvokeAsync();
+    }
+
     public async Task MakeNewRegist()
     {
         errorMessage = "";
         showQuestionError = false;
 
-        if (string.IsNullOrWhiteSpace(registerRequest.SecurityQuestion))
-        {
-            showQuestionError = true;
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(registerRequest.SecurityQuestion)) { showQuestionError = true; return; }
+        if (string.IsNullOrWhiteSpace(registerRequest.SecurityAnswer)) { errorMessage = "Por favor responde à pergunta de segurança."; return; }
 
-        if (string.IsNullOrWhiteSpace(registerRequest.SecurityAnswer))
-        {
-            errorMessage = "Please provide an answer to the security question.";
-            return;
-        }
-
-        bool emailJaExiste = await RegisterRepository.EmailExists(registerRequest.Email);
-
-        if (emailJaExiste)
-        {
-            errorMessage = "An account with this email already exists. Try logging in.";
-            return;
-        }
+        if (await RegisterRepository.EmailExists(registerRequest.Email)) { errorMessage = "Este email já está registado. Tenta fazer login."; return; }
 
         bool success = await RegisterRepository.CreateRegist(
-            registerRequest.Username,
-            registerRequest.Email,
-            registerRequest.Password,
-            registerRequest.SecurityQuestion,
-            registerRequest.SecurityAnswer
-        );
+            registerRequest.Username, registerRequest.Email, registerRequest.Password,
+            registerRequest.SecurityQuestion, registerRequest.SecurityAnswer);
 
-        if (!success)
-        {
-            errorMessage = "Error creating account. Please try again.";
-            return;
-        }
+        if (!success) { errorMessage = "Erro ao criar conta. Tenta novamente."; return; }
 
-        bool loginSuccess = await LoginRepository.LogUser(
-            registerRequest.Email,
-            registerRequest.Password
-        );
+        bool loginSuccess = await LoginRepository.LogUser(registerRequest.Email, registerRequest.Password);
+        if (!loginSuccess) { errorMessage = "Conta criada, mas o login automático falhou. Faz login manualmente."; return; }
 
-        if (!loginSuccess)
-        {
-            errorMessage = "Account created, but automatic login failed. Please log in manually.";
-            return;
-        }
-
-        ((CustomAuthenticationStateProvider)AuthenticationStateProvider)
-            .MarkUserAsAuthenticated(registerRequest.Email);
-
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).MarkUserAsAuthenticated(registerRequest.Email);
         await sessionStorage.SetItemAsync("userEmail", registerRequest.Email);
 
         isOpen = false;

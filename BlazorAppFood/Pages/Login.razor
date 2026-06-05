@@ -1,4 +1,4 @@
-﻿@using BlazorAppFood.Auth
+@using BlazorAppFood.Auth
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
 @inject ILoginRepository LoginRepository
@@ -6,88 +6,49 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
-
-<div class="modal fade @(isOpen ? "show d-block" : "")"
-     tabindex="-1"
-     aria-labelledby="loginModalLabel">
-
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <!-- HEADER -->
-            <div class="modal-header">
-                <h5 class="modal-title">Login</h5>
-
-                <button type="button"
-                        class="btn-close"
-                        @onclick="CloseModal">
-                </button>
-            </div>
-
-            <!-- FORM -->
-            <EditForm Model="@user" OnValidSubmit="LoginUser">
-
-                <div class="modal-body">
-
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <InputText class="form-control"
-                                   @bind-Value="user.Email" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <InputText class="form-control"
-                                   type="password"
-                                   @bind-Value="user.Password" />
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
-
-                        <div class="form-check d-flex align-items-center">
-                            <input type="checkbox" class="form-check-input me-2" />
-                            <label class="form-check-label text-nowrap">
-                                Remember me
-                            </label>
-                        </div>
-
-                        <a href="/forgot-password"
-                           class="text-muted small text-decoration-none text-nowrap"
-                           @onclick="CloseModal"
-                           @onclick:preventDefault="false">
-                            Esqueci a senha
-                        </a>
-
-                    </div>
-
-                    @if (showErrorLogin)
-                    {
-                        <div class="alert alert-danger">
-                            Email ou password incorretos
-                        </div>
-                    }
-
-                </div>
-
-                <!-- FOOTER -->
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark">
-                        Login
-                    </button>
-                </div>
-
-            </EditForm>
-
-        </div>
-    </div>
-</div>
-
 @if (isOpen)
 {
-    <div class="modal-backdrop fade show"></div>
+    <div class="fd-auth-overlay">
+        <div class="fd-auth-panel">
+            <button class="fd-auth-close" @onclick="CloseModal" aria-label="Fechar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <h3>Entrar no Foodie</h3>
+            <p class="fd-muted fd-small" style="margin-bottom:20px">Que bom voltar a ver-te.</p>
+
+            @if (showErrorLogin)
+            {
+                <div style="background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;margin-bottom:14px">
+                    <i class="bi bi-exclamation-circle"></i> Email ou password incorretos.
+                </div>
+            }
+
+            <EditForm Model="@user" OnValidSubmit="LoginUser">
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Email</label>
+                    <InputText class="fd-form-control" @bind-Value="user.Email" placeholder="ola@foodie.pt" />
+                </div>
+                <div class="fd-form-group">
+                    <label class="fd-form-label">Password</label>
+                    <InputText class="fd-form-control" type="password" @bind-Value="user.Password" placeholder="••••••••" />
+                </div>
+
+                <button type="submit" class="fd-btn fd-btn-primary fd-btn-block" style="margin-top:8px;padding:12px">
+                    Entrar
+                </button>
+
+                <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
+                    Ainda não tens conta?
+                    <a href="javascript:void(0)" @onclick="SwitchToRegister" style="color:var(--orange)">Regista-te aqui</a>
+                </p>
+            </EditForm>
+        </div>
+    </div>
 }
 
 @code {
+    [Parameter] public EventCallback OnOpenRegister { get; set; }
 
     private User user = new User();
     private bool showErrorLogin = false;
@@ -106,6 +67,12 @@
         StateHasChanged();
     }
 
+    private async Task SwitchToRegister()
+    {
+        CloseModal();
+        await OnOpenRegister.InvokeAsync();
+    }
+
     public async Task LoginUser()
     {
         bool userIsValidated = await LoginRepository.LogUser(user.Email, user.Password);
@@ -116,9 +83,7 @@
                 .MarkUserAsAuthenticated(user.Email);
 
             await sessionStorage.SetItemAsync("userEmail", user.Email);
-
             isOpen = false;
-
             NavigationManager.NavigateTo("/feed");
         }
         else

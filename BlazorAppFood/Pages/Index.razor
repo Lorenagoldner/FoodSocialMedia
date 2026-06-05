@@ -1,60 +1,76 @@
-﻿@page "/"
+@page "/"
 @inject NavigationManager NavigationManager
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 
 @layout EmptyLayout
 
-<style>
-    body {
-        background-color: #fff;
-    }
-</style>
+<div class="fd-empty-layout">
 
-<div class="container">
+    <header class="fd-empty-header">
+        <a href="/" class="fd-brand"><span class="fd-brand__dot"></span> Foodie</a>
+        <nav class="fd-flex" style="gap:8px">
+            <button class="fd-btn fd-btn-outline" @onclick="OpenRegister">Registar</button>
+            <button class="fd-btn fd-btn-primary" @onclick="OpenLogin">Login</button>
+        </nav>
+    </header>
 
-    <div class="row align-items-center index-showcase">
+    <main class="fd-empty-content">
+        <div class="fd-landing">
+            <div>
+                <h1 class="fd-landing__title">
+                    Nada como a <em>boa comida</em><br />para juntar as pessoas.
+                </h1>
+                <p class="fd-landing__lede">
+                    Foodie é uma pequena rede para quem gosta mesmo de cozinhar. Partilha receitas,
+                    segue cozinheiros de confiança e descobre o que está hoje nos fogões da comunidade.
+                </p>
+                <div class="fd-landing__cta">
+                    <button class="fd-btn fd-btn-primary" style="padding:12px 24px;font-size:15px" @onclick="OpenRegister">
+                        <i class="bi bi-person-plus"></i> Registar
+                    </button>
+                    <button class="fd-btn fd-btn-outline" style="padding:12px 24px;font-size:15px" @onclick="OpenLogin">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </button>
+                </div>
+            </div>
 
-        <div class="col-md index-left-panel">
-            <a class="navbar-brand" href="#">Foodie</a>
-
-            <h4>Nada como a boa comida para juntar as pessoas</h4>
-
-            <button class="btn btn-dark" @onclick="OpenRegister">
-                Registar
-            </button>
-
-            <button class="btn btn-outline-dark" @onclick="OpenLogin">
-                Login
-            </button>
+            <div class="fd-landing__art" aria-hidden="true">
+                <svg viewBox="0 0 460 460" width="100%">
+                    <circle cx="230" cy="230" r="210" fill="#FFE7D2"/>
+                    <circle cx="230" cy="230" r="160" fill="#FFFFFF"/>
+                    <g transform="translate(140 160)">
+                        <ellipse cx="40" cy="55" rx="42" ry="55" fill="#6BCB77"/>
+                        <ellipse cx="40" cy="55" rx="30" ry="42" fill="#EAF7D7"/>
+                        <circle cx="40" cy="60" r="14" fill="#7A4A2B"/>
+                    </g>
+                    <g transform="translate(290 195)">
+                        <circle cx="30" cy="35" r="34" fill="#FF6B35"/>
+                        <path d="M16 8 q14 -10 28 0 q-5 8 -14 8 t-14 -8z" fill="#6BCB77"/>
+                    </g>
+                    <g transform="translate(180 270)" fill="none" stroke="#FFC857" stroke-width="6" stroke-linecap="round">
+                        <path d="M0 30 q20 -25 40 0 t40 0 t40 0"/>
+                        <path d="M5 50 q20 -25 40 0 t40 0 t40 0"/>
+                        <path d="M10 70 q20 -25 40 0 t40 0 t40 0"/>
+                    </g>
+                </svg>
+            </div>
         </div>
+    </main>
 
-        <div class="col-md index-right-panel">
-            <img src="img/illustration-index.jpg" width="440" height="440">
-        </div>
-
-    </div>
-
-    <div class="row text-center index-footer">
-        <h6 class="col">Consegues imaginar um mundo sem comida?</h6>
-        <span>2021 © All rights reserved</span>
-    </div>
-
-    <!-- MODALS -->
-    <Login @ref="loginRef" />
-    <Register @ref="registerRef" />
+    <footer class="fd-empty-footer">
+        <p>Consegues imaginar um mundo sem comida? · © 2026 Foodie</p>
+    </footer>
 
 </div>
-@code {
 
+<!-- Modals -->
+<Login @ref="loginRef" OnOpenRegister="OpenRegister" />
+<Register @ref="registerRef" OnOpenLogin="OpenLogin" />
+
+@code {
     private Login? loginRef;
     private Register? registerRef;
-    void OpenLogin()
-    {
-        loginRef?.OpenModal();
-    }
 
-    void OpenRegister()
-    {
-        registerRef?.OpenModal();
-    }
+    void OpenLogin() => loginRef?.OpenModal();
+    void OpenRegister() => registerRef?.OpenModal();
 }
