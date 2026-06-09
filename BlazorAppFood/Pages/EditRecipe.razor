@@ -1,4 +1,4 @@
-﻿@page "/editrecipe/{id:int}"
+@page "/editrecipe/{id:int}"
 
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
@@ -11,185 +11,151 @@
 
 @if (recipe == null)
 {
-    <p>Loading...</p>
+    <p class="fd-muted" style="padding:40px;text-align:center">A carregar...</p>
 }
 else
 {
-    <EditForm Model="@recipe" OnValidSubmit="@SaveRecipe" class="container">
-        <div class="card form-recipe">
-            <div class="form-recipe-header">
-                <h3>Informações da Receita</h3>
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="alert alert-danger mt-2">
-                        @errorMessage
-                    </div>
-                }
-            </div>
+    <div class="fd-page-wrap">
+        <div class="fd-container">
 
-            <!-- Recipe Title -->
-            <div class="mb-3">
-                <label class="form-label">Título da Receita</label>
-                <InputText class="form-control" @bind-Value="recipe.NameRecipe" required />
-            </div>
+            <h1 class="fd-page-title fd-mb-3">Editar receita</h1>
 
-            <!-- Recipe Image -->
-            <div class="mb-3">
-                <label class="form-label">Imagem da Receita</label>
-
-                @if (recipe.Image != null && recipe.Image.Length > 0)
-                {
-                    <div class="mb-2">
-                        <p class="text-muted mb-1">Imagem atual:</p>
-
-                        <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}")"
-                             alt="Imagem da receita"
-                             class="img-fluid rounded shadow-sm"
-                             style="max-width: 250px;" />
-                    </div>
-                }
-
-                <InputFile OnChange="HandleFileSelection" class="form-control" />
-
-                <small class="text-muted">
-                    Escolha uma nova imagem apenas se quiser substituir a atual.
-                </small>
-            </div>
-
-            <!-- Servings -->
-            <div class="mb-3">
-                <label class="form-label">Rendimento (Porções)</label>
-                <input type="number" min="1" max="999" @bind="recipe.Servings" class="form-control" required />
-            </div>
-
-            <!-- Difficulty -->
-            <div class="mb-3">
-                <label class="form-label">Dificuldade</label>
-                <select class="form-select" @bind="recipe.Difficulty">
-                    <option value="@DifficultyLevel.Facil">Fácil</option>
-                    <option value="@DifficultyLevel.Medio">Médio</option>
-                    <option value="@DifficultyLevel.Dificil">Difícil</option>
-                </select>
-            </div>
-
-            <!-- Prep Time -->
-            <div class="mb-3">
-                <label class="form-label">Tempo de Preparação</label>
-                <div class="input-group">
-                    <input type="number" min="1" max="999" @bind="prepTimeValue" class="form-control" required />
-                    <select class="form-select" @bind="prepTimeUnit" style="max-width: 120px;">
-                        <option value="min">Minutos</option>
-                        <option value="h">Horas</option>
-                    </select>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background:#FEE2E2;color:#B91C1C;border:1px solid #FECACA;border-radius:var(--r-sm);padding:12px 14px;font-size:14px;margin-bottom:18px">
+                    <i class="bi bi-exclamation-circle"></i> @errorMessage
                 </div>
-            </div>
+            }
 
-            <!-- Cook Time -->
-            <div class="mb-3">
-                <label class="form-label">Tempo de Cozedura</label>
-                <div class="input-group">
-                    <input type="number" min="1" max="999" @bind="cookTimeValue" class="form-control" required />
-                    <select class="form-select" @bind="cookTimeUnit" style="max-width: 120px;">
-                        <option value="min">Minutos</option>
-                        <option value="h">Horas</option>
-                    </select>
-                </div>
-            </div>
+            <div class="fd-card">
+                <div class="fd-card-body">
+                    <EditForm Model="@recipe" OnValidSubmit="@SaveRecipe">
 
-            <!-- Step-by-Step Instructions -->
-            <div class="mb-3">
-                <label class="form-label">Passo a Passo</label>
-                <InputTextArea class="form-control" @bind-Value="recipe.Preparation" rows="5" />
-            </div>
+                        <div class="fd-form-group">
+                            <label class="fd-form-label">Título</label>
+                            <InputText class="fd-form-control" @bind-Value="recipe.NameRecipe" required />
+                        </div>
 
-            <hr />
+                        <div class="fd-form-group">
+                            <label class="fd-form-label">Preparação</label>
+                            <InputTextArea class="fd-form-control" @bind-Value="recipe.Preparation" rows="6" />
+                        </div>
 
-            <!-- Ingredients Section -->
-            <div class="col form-ingredients">
-                <img src="img/harvest.svg" alt="">
-                <label for="inputIngredients" class="form-label">Ingredientes</label>
+                        <div class="fd-form-group">
+                            <label class="fd-form-label">Foto (opcional)</label>
+                            @if (recipe.Image != null && recipe.Image.Length > 0)
+                            {
+                                <div style="margin-bottom:10px">
+                                    <img src="@($"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}")"
+                                         alt="Imagem atual"
+                                         style="max-width:200px;border-radius:var(--r-sm);display:block" />
+                                </div>
+                            }
+                            <InputFile OnChange="HandleFileSelection" class="fd-form-control" />
+                            <small class="fd-muted" style="font-size:12px;margin-top:4px;display:block">Se não escolheres uma nova foto, mantém-se a original.</small>
+                        </div>
 
-                <!-- Add New Ingredient -->
-                <div class="row">
-                    <div class="col-10">
-                        <SfAutoComplete TValue="string" TItem="Ingredient" DataSource="@allIngredients" @bind-Value="@ingredientName">
-                            <AutoCompleteFieldSettings Value="Name"></AutoCompleteFieldSettings>
-                        </SfAutoComplete>
-                    </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                            <div class="fd-form-group">
+                                <label class="fd-form-label">Porções</label>
+                                <input type="number" min="1" max="999" @bind="recipe.Servings" class="fd-form-control" required />
+                            </div>
+                            <div class="fd-form-group">
+                                <label class="fd-form-label">Dificuldade</label>
+                                <select class="fd-form-select" @bind="recipe.Difficulty">
+                                    <option value="@DifficultyLevel.Facil">Fácil</option>
+                                    <option value="@DifficultyLevel.Medio">Médio</option>
+                                    <option value="@DifficultyLevel.Dificil">Difícil</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="col">
-                        <button type="button" @onclick="@(() => AddIngredient(ingredientName))">
-                            <i class="bi bi-plus-circle-fill"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-ingredients-content">
-                    <ul>
-                        @foreach (var ingredient in recipe.Ingredients)
-                        {
-                            <li>
-                                <button type="button" class="btn btn-outline-dark">
-                                    <span class="ingredient-label">
-                                        @ingredient.Name <span @onclick="@( () => RemoveIngredient(ingredient) )">
-                                            <strong>x</strong>
-                                        </span>
-                                    </span>
-                                </button>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-
-            <hr />
-
-            <!-- Category Section -->
-            <div class="mb-3">
-                <label class="form-label">Categoria</label>
-                <div class="accordion" id="tagAccordion">
-                    @foreach (var category in allCategories)
-                    {
-                        var collapseId = $"collapse-{category.IdCategory}";
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="heading-@category.IdCategory">
-                                <button class="accordion-button collapsed fw-bold" type="button"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#@collapseId"
-                                        aria-expanded="false"
-                                        aria-controls="@collapseId">
-                                    @category.Description
-                                </button>
-                            </h2>
-                            <div id="@collapseId" class="accordion-collapse collapse" aria-labelledby="heading-@category.IdCategory" data-bs-parent="#tagAccordion">
-                                <div class="accordion-body">
-                                    @foreach (var tag in category.Tags)
-                                    {
-                                        <div class="form-check">
-                                            <input class="form-check-input"
-                                                   type="checkbox"
-                                                   id="tag-@tag.IdTag"
-                                                   value="@tag.IdTag"
-                                                   checked="@recipe.Tags.Any(t => t.IdTag == tag.IdTag)"
-                                                   @onchange="@((ChangeEventArgs e) => ToggleTagSelection(tag.IdTag, e))" />
-                                            <label class="form-check-label" for="tag-@tag.IdTag">
-                                                @tag.NameTag
-                                            </label>
-                                        </div>
-                                    }
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                            <div class="fd-form-group">
+                                <label class="fd-form-label">Tempo de preparação</label>
+                                <div class="fd-input-row">
+                                    <input type="number" min="1" max="999" @bind="prepTimeValue" class="fd-form-control" />
+                                    <select class="fd-form-select" @bind="prepTimeUnit">
+                                        <option value="min">Minutos</option>
+                                        <option value="h">Horas</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="fd-form-group">
+                                <label class="fd-form-label">Tempo de cozinhar</label>
+                                <div class="fd-input-row">
+                                    <input type="number" min="1" max="999" @bind="cookTimeValue" class="fd-form-control" />
+                                    <select class="fd-form-select" @bind="cookTimeUnit">
+                                        <option value="min">Minutos</option>
+                                        <option value="h">Horas</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                    }
+
+                        <!-- Ingredients -->
+                        <div class="fd-form-group" style="margin-top:8px">
+                            <label class="fd-form-label">Ingredientes</label>
+                            <div class="fd-input-row" style="margin-bottom:10px">
+                                <SfAutoComplete TValue="string" TItem="Ingredient" DataSource="@allIngredients" @bind-Value="@ingredientName">
+                                    <AutoCompleteFieldSettings Value="Name"></AutoCompleteFieldSettings>
+                                </SfAutoComplete>
+                                <button type="button" class="fd-btn fd-btn-outline" style="padding:8px 12px;flex-shrink:0"
+                                        @onclick="@(() => AddIngredient(ingredientName))">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                @foreach (var ingredient in recipe.Ingredients)
+                                {
+                                    var ing = ingredient;
+                                    <span class="fd-badge fd-badge-outline">
+                                        @ing.Name
+                                        <button type="button" @onclick="@(() => RemoveIngredient(ing))">×</button>
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="fd-form-group" style="margin-top:8px">
+                            <label class="fd-form-label">Categorias &amp; tags</label>
+                            @foreach (var category in allCategories)
+                            {
+                                <details class="fd-acc">
+                                    <summary>@category.Description</summary>
+                                    <div class="fd-acc__body">
+                                        <div class="fd-acc__checks">
+                                            @foreach (var tag in category.Tags)
+                                            {
+                                                <label>
+                                                    <input type="checkbox"
+                                                           checked="@recipe.Tags.Any(t => t.IdTag == tag.IdTag)"
+                                                           @onchange="@((ChangeEventArgs e) => ToggleTagSelection(tag.IdTag, e))" />
+                                                    #@tag.NameTag
+                                                </label>
+                                            }
+                                        </div>
+                                    </div>
+                                </details>
+                            }
+                        </div>
+
+                        <div class="fd-flex" style="gap:10px;margin-top:24px">
+                            <button type="submit" class="fd-btn fd-btn-success">
+                                <i class="bi bi-check2"></i> Confirmar
+                            </button>
+                            <button type="button" class="fd-btn fd-btn-outline" @onclick="Cancel">
+                                Cancelar
+                            </button>
+                        </div>
+
+                    </EditForm>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <button class="btn btn-success" type="submit">Confirmar</button>
-                <button class="btn btn-secondary" type="button" @onclick="@Cancel">Cancelar</button>
-            </div>
         </div>
-    </EditForm>
+    </div>
 }
 
 @code {
@@ -217,10 +183,10 @@ else
         if (id == 0)
         {
             recipe = new Recipe
-                {
-                    Ingredients = new List<Ingredient>(),
-                    Tags = new List<Tag>()
-                };
+            {
+                Ingredients = new List<Ingredient>(),
+                Tags = new List<Tag>()
+            };
         }
         else
         {
@@ -258,9 +224,7 @@ else
         errorMessage = "";
 
         if (_fileBytes == null)
-        {
             recipe.Image = _originalImage;
-        }
 
         recipe.Prep_Time = prepTimeUnit == "h" ? prepTimeValue * 60 : prepTimeValue;
         recipe.Cook_Time = cookTimeUnit == "h" ? cookTimeValue * 60 : cookTimeValue;
@@ -270,9 +234,7 @@ else
             bool success = await RecipeRepository.UpdateRecipe(recipe);
 
             if (success && currentUser != null)
-            {
                 NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");
-            }
             else
             {
                 errorMessage = "Erro ao atualizar a receita. Tente novamente.";
@@ -290,14 +252,11 @@ else
             await ScrollToTop();
         }
     }
-    
 
     void Cancel()
     {
         if (currentUser != null)
-        {
             NavigationManager.NavigateTo($"/myrecipes/{currentUser.Id_User}");
-        }
     }
 
     protected async Task HandleFileSelection(InputFileChangeEventArgs e)
@@ -334,25 +293,17 @@ else
         if ((bool)e.Value)
         {
             var tag = allCategories.SelectMany(c => c.Tags).FirstOrDefault(t => t.IdTag == tagId);
-            if (tag != null)
-            {
-                recipe.Tags.Add(tag);
-            }
+            if (tag != null) recipe.Tags.Add(tag);
         }
         else
         {
             var tag = recipe.Tags.FirstOrDefault(t => t.IdTag == tagId);
-            if (tag != null)
-            {
-                recipe.Tags.Remove(tag);
-            }
+            if (tag != null) recipe.Tags.Remove(tag);
         }
     }
 
     private async Task ScrollToTop()
     {
-        await JSRuntime.InvokeVoidAsync(
-            "eval",
-            "window.scrollTo({ top: 0, behavior: 'smooth' })");
+        await JSRuntime.InvokeVoidAsync("eval", "window.scrollTo({ top: 0, behavior: 'smooth' })");
     }
 }

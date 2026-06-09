@@ -14,14 +14,20 @@
 @inject INotificationRepository NotificationRepository
 
 <!--Navbar-->
-<nav class="navbar">
-    <div class="container">
-        <a class="navbar-brand-logo" href="/feed">Foodie</a>
-        <form class="d-flex justify-content-center">
+<nav class="fd-nav">
+    <div class="fd-nav__inner">
+
+        <a class="fd-brand" href="/feed">
+            <span class="fd-brand__dot"></span> Foodie
+        </a>
+
+        <div class="fd-search">
+            <i class="bi bi-search"></i>
             <SfAutoComplete TValue="string"
                             TItem="SearchResult"
                             DataSource="@searchResults"
-                            Filtering="OnFilter">
+                            Filtering="OnFilter"
+                            Placeholder="Procurar...">
                 <AutoCompleteTemplates TItem="SearchResult">
                     <ItemTemplate Context="item">
                         <div @onclick="@(() => NavigationManager.NavigateTo(item.Route))">
@@ -42,104 +48,92 @@
                 </AutoCompleteTemplates>
                 <AutoCompleteFieldSettings Value="Title"></AutoCompleteFieldSettings>
             </SfAutoComplete>
-        </form>
-
-        <div class="dropdown">
-            <div class="bar1"></div>
-            <div class="bar2"></div>
-            <div class="bar3"></div>
-            <div class="list-group dropdown-content">
-                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
-                    <i class="bi bi-house"></i>Home
-                </NavLink>
-                <NavLink class="nav-link" href="AddRecipe" Match="NavLinkMatch.All">
-                    <i class="bi bi-plus-circle"></i>Publicar Receita
-                </NavLink>
-                <NavLink class="nav-link" href="@($"/myrecipes/{user.Id_User}")" Match="NavLinkMatch.All">
-                    <i class="custom-plate-icon"></i>Minhas Receitas
-                </NavLink>
-                <NavLink class="nav-link" href="grouppage" Match="NavLinkMatch.All">
-                    <i class="bi bi-people"></i>Meus Grupos
-                </NavLink>
-                <NavLink class="nav-link" href="favorites" Match="NavLinkMatch.All">
-                    <i class="bi bi-bookmark"></i>Favoritos
-                </NavLink>
-                <NavLink class="nav-link" href="feed" Match="NavLinkMatch.All">
-                    <i class="bi bi-person"></i>A seguir
-                </NavLink>
-                <NavLink class="nav-link" href="userpage"
-                         style="border-top: 1px solid #e2e2e2;"
-                         Match="NavLinkMatch.All">
-                    <i class="bi bi-gear"></i>A minha conta
-                </NavLink>
-                <a class="nav-link" href="javascript:void(0)" @onclick="Logout"
-                   style="border-top: 1px solid #e2e2e2; cursor: pointer;">
-                    <i class="bi bi-door-open"></i>Sair
-                </a>
-            </div>
         </div>
 
-        <div class="dropdown me-3">
+        <!-- Menu dropdown -->
+        <div class="fd-dd fd-nav-dd">
+            <button class="fd-dd-toggle" @onclick="ToggleMenu">
+                <i class="bi bi-list" style="font-size:20px"></i>
+            </button>
+            @if (menuOpen)
+            {
+                <div class="dd-panel">
+                    <NavLink class="dd-item" href="feed" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-house"></i> Home
+                    </NavLink>
+                    <NavLink class="dd-item" href="AddRecipe" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-plus-circle"></i> Publicar receita
+                    </NavLink>
+                    <NavLink class="dd-item" href="@($"/myrecipes/{user.Id_User}")" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-journal-text"></i> Minhas receitas
+                    </NavLink>
+                    <NavLink class="dd-item" href="grouppage" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-people"></i> Meus grupos
+                    </NavLink>
+                    <NavLink class="dd-item" href="favorites" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-bookmark"></i> Favoritos
+                    </NavLink>
+                    <div class="dd-divider"></div>
+                    <NavLink class="dd-item" href="userpage" Match="NavLinkMatch.All" @onclick="() => menuOpen = false">
+                        <i class="bi bi-gear"></i> A minha conta
+                    </NavLink>
+                    <a class="dd-item" href="javascript:void(0)" @onclick="Logout" style="color:#DC3545">
+                        <i class="bi bi-box-arrow-right"></i> Sair
+                    </a>
+                </div>
+            }
+        </div>
 
-            <button class="btn btn-light position-relative">
-
-                🔔
-
+        <!-- Notificações dropdown -->
+        <div class="fd-dd fd-nav-dd">
+            <button class="fd-dd-toggle" @onclick="ToggleNotifications" style="position:relative">
+                <i class="bi bi-bell"></i>
                 @if (notifications.Count(n => !n.IsRead) > 0)
                 {
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        @notifications.Count(n => !n.IsRead)
-                    </span>
+                    <span class="badge-notif">@notifications.Count(n => !n.IsRead)</span>
                 }
-
             </button>
-
-            <div class="dropdown-content list-group">
-
-                @if (notifications.Any())
-                {
-                    <button class="list-group-item list-group-item-action text-danger"
-                            @onclick="ClearAllNotifications">
-                        Limpar todas
-                    </button>
-
-                    @foreach (var notification in notifications
-                        .OrderByDescending(n => n.CreatedAt)
-                        .Take(10))
+            @if (notifOpen)
+            {
+                <div class="dd-panel">
+                    @if (notifications.Any())
                     {
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-
-                            <span style="cursor:pointer"
-                                  @onclick="() => OpenNotification(notification)">
-                                @notification.Message
-                            </span>
-
-                            <button class="btn btn-sm btn-outline-secondary ms-2"
-                                    @onclick="() => ClearNotification(notification)">
-                                ✓
-                            </button>
-
-                        </div>
+                        <button class="dd-item" style="color:#DC3545;width:100%;text-align:left;border:none;background:none;cursor:pointer"
+                                @onclick="ClearAllNotifications">
+                            Limpar todas
+                        </button>
+                        <div class="dd-divider"></div>
+                        @foreach (var notification in notifications.OrderByDescending(n => n.CreatedAt).Take(10))
+                        {
+                            <div class="dd-item" style="justify-content:space-between">
+                                <span style="cursor:pointer;flex:1" @onclick="() => OpenNotification(notification)">
+                                    @notification.Message
+                                </span>
+                                <button style="background:none;border:none;cursor:pointer;color:var(--muted)"
+                                        @onclick="() => ClearNotification(notification)">✓</button>
+                            </div>
+                        }
                     }
-                }
-                else
-                {
-                    <div class="list-group-item">
-                        Sem notificações
-                    </div>
-                }
-
-            </div>
-
+                    else
+                    {
+                        <div style="padding:10px;font-size:14px;color:var(--muted)">Sem notificações</div>
+                    }
+                </div>
+            }
         </div>
 
-        <div class="me-2">
-            <a href="/profilepage">
-                <img src="@(!string.IsNullOrEmpty(user?.UserPhoto) ? user.UserPhoto : "img/default-avatar.svg")"
-                     alt=""
-                     class="rounded-circle circle-user" width="60" height="60">
-            </a>
-        </div>
+        <!-- Avatar -->
+        <a href="/profilepage" style="display:inline-block;width:40px;height:40px;flex-shrink:0">
+            @if (!string.IsNullOrEmpty(user?.UserPhoto))
+            {
+                <img src="@user.UserPhoto" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);display:block" />
+            }
+            else
+            {
+                <span class="fd-avatar fd-avatar--a" style="width:40px;height:40px;display:block"></span>
+            }
+        </a>
+
     </div>
 </nav>
 
@@ -151,6 +145,10 @@
 
     private bool collapseNavMenu = true;
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private bool menuOpen = false;
+    private bool notifOpen = false;
+    private void ToggleMenu() { menuOpen = !menuOpen; notifOpen = false; }
+    private void ToggleNotifications() { notifOpen = !notifOpen; menuOpen = false; }
 
     private List<Notification> notifications = new();
 

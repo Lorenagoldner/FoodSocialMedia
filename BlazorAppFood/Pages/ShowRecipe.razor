@@ -1,4 +1,4 @@
-﻿@page "/myrecipes/{userId:int}"
+@page "/myrecipes/{userId:int}"
 
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
@@ -6,59 +6,69 @@
 @inject IUserRepository UserRepository
 @inject NavigationManager NavigationManager
 
-<div class="container">
-    <div class="card form-recipe">
+<div class="fd-page-wrap">
+    <div class="fd-container">
 
-        <div class="form-recipe-header">
-            <h1>Receitas de @userName</h1>
+        <div class="fd-flex-between fd-mb-3">
+            <h1 class="fd-page-title" style="margin:0">Receitas de @userName</h1>
+            <a href="/addrecipe" class="fd-btn fd-btn-primary">
+                <i class="bi bi-plus-lg"></i> Nova receita
+            </a>
         </div>
 
         <AuthorizeView>
             <Authorized>
                 @if (recipe == null)
                 {
-                    <div class="text-center">
-                        <img src="~/images/loading.gif" alt="Loading..." />
-                    </div>
+                    <p class="fd-muted">A carregar receitas...</p>
                 }
                 else if (!recipe.Any())
                 {
-                    <p>Este utilizador ainda não tem receitas publicadas.</p>
+                    <div style="background:var(--blue-soft);color:#1F4D7A;border:1px solid #B8D0EA;border-radius:var(--r-sm);padding:12px 14px;font-size:14px">
+                        Este utilizador ainda não tem receitas publicadas.
+                    </div>
                 }
                 else
                 {
-                    <div class="row">
+                    <div class="fd-grid-2">
                         @foreach (var rec in recipe)
                         {
-                            var img = rec.Image != null
-                            ? $"data:image/jpeg;base64,{Convert.ToBase64String(rec.Image)}"
-                            : "/images/default-recipe.jpg";
+                            var imgSrc = rec.Image != null
+                                ? $"data:image/jpeg;base64,{Convert.ToBase64String(rec.Image)}"
+                                : null;
+                            var imgClass = ImgClasses[rec.Id_Recipe % ImgClasses.Length];
 
-                            <div class="card card-recipe col-md-6 mb-4">
-                                <div class="row">
-                                    <div class="col-md-4" style="height: 200px; overflow: hidden;">
-                                        <img class="img-recipe-card w-100 h-100 object-fit-cover" src="@img" alt="Recipe image" />
+                            <div class="fd-card">
+                                @if (imgSrc != null)
+                                {
+                                    <img src="@imgSrc" alt="@rec.NameRecipe"
+                                         style="width:100%;height:200px;object-fit:cover;border-top-left-radius:var(--r-lg);border-top-right-radius:var(--r-lg);display:block" />
+                                }
+                                else
+                                {
+                                    <div class="fd-img @imgClass" style="height:200px;border-top-left-radius:var(--r-lg);border-top-right-radius:var(--r-lg)">
+                                        <svg viewBox="0 0 200 140" width="60%"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="100" cy="80" r="40" fill="#fff"/></g></svg>
                                     </div>
-                                    <div class="col-md-8">
-                                        <div class="card-body">
-                                            <h5 class="card-title">
-                                                <a href="javascript:void(0)" @onclick="@(() => NavigationManager.NavigateTo($"/recipepage/{rec.Id_Recipe}"))">
-                                                    @rec.NameRecipe
-                                                </a>
-                                            </h5>
-
-                                            <p><i class="bi bi-hourglass-split"></i> Prep: @TimeFormatter.FormatMinutes(rec.Prep_Time)</p>
-                                            <p><i class="bi bi-fire"></i> Cook: @TimeFormatter.FormatMinutes(rec.Cook_Time)</p>
-
-                                            <div class="d-flex gap-2 mt-3">
-                                                <button class="btn btn-primary" @onclick="@(() => NavigationManager.NavigateTo($"/editrecipe/{rec.Id_Recipe}"))">
-                                                    Edit
-                                                </button>
-                                                <button class="btn btn-danger" @onclick="@(() => NavigationManager.NavigateTo($"/deleterecipe/{rec.Id_Recipe}"))">
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </div>
+                                }
+                                <div class="fd-card-body">
+                                    <a href="/recipepage/@rec.Id_Recipe"
+                                       style="font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--ink);text-decoration:none;display:block;margin-bottom:6px">
+                                        @rec.NameRecipe
+                                    </a>
+                                    <div class="fd-muted fd-small" style="margin-bottom:12px">
+                                        <i class="bi bi-clock"></i> @TimeFormatter.FormatMinutes(rec.Prep_Time) prep
+                                        &nbsp;·&nbsp;
+                                        <i class="bi bi-fire"></i> @TimeFormatter.FormatMinutes(rec.Cook_Time) cozinha
+                                    </div>
+                                    <div class="fd-flex" style="gap:8px">
+                                        <button class="fd-btn fd-btn-outline" style="padding:6px 12px;font-size:13px"
+                                                @onclick="@(() => NavigationManager.NavigateTo($"/editrecipe/{rec.Id_Recipe}"))">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </button>
+                                        <button class="fd-btn" style="padding:6px 12px;font-size:13px;background:#DC3545;color:#fff;border-color:#DC3545"
+                                                @onclick="@(() => AskDelete(rec.Id_Recipe, rec.NameRecipe))">
+                                            <i class="bi bi-trash"></i> Eliminar
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -67,18 +77,46 @@
                 }
             </Authorized>
             <NotAuthorized>
-                <p>Por favor, inicie sessão para ver as receitas.</p>
+                <p class="fd-muted">Por favor, inicie sessão para ver as receitas.</p>
             </NotAuthorized>
         </AuthorizeView>
 
     </div>
 </div>
 
+<!-- Delete confirmation modal -->
+@if (showDeleteModal)
+{
+    <div class="fd-modal-overlay">
+        <div class="fd-modal">
+            <h5>Eliminar receita?</h5>
+            <p style="color:var(--ink-2);font-size:14px;margin-bottom:4px">
+                <strong>@deleteRecipeName</strong>
+            </p>
+            <p style="color:var(--muted);font-size:13px">
+                Esta ação não pode ser revertida. A receita será removida do teu mural e dos favoritos de quem a guardou.
+            </p>
+            <div class="fd-modal-footer">
+                <button class="fd-btn fd-btn-outline" @onclick="CancelDelete">Cancelar</button>
+                <button class="fd-btn" style="background:#DC3545;color:#fff;border-color:#DC3545" @onclick="ConfirmDelete">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public int userId { get; set; }
 
     private IEnumerable<Recipe> recipe;
     private string userName = "";
+
+    private bool showDeleteModal = false;
+    private int deleteRecipeId;
+    private string deleteRecipeName = "";
+
+    private static readonly string[] ImgClasses = { "fd-img--a", "fd-img--b", "fd-img--c", "fd-img--d", "fd-img--e" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -94,5 +132,21 @@
             recipe = new List<Recipe>();
             userName = "desconhecido";
         }
+    }
+
+    private void AskDelete(int recipeId, string recipeName)
+    {
+        deleteRecipeId = recipeId;
+        deleteRecipeName = recipeName;
+        showDeleteModal = true;
+    }
+
+    private void CancelDelete() => showDeleteModal = false;
+
+    private async Task ConfirmDelete()
+    {
+        await RecipeRepository.DeleteRecipe(deleteRecipeId);
+        showDeleteModal = false;
+        recipe = await RecipeRepository.GetRecipesByUserId(userId);
     }
 }

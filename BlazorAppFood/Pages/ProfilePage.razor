@@ -20,302 +20,149 @@
 }
 else
 {
-    <div class="container">
-        <div class="profile-section d-flex flex-column align-items-center">
-            <div>
-                <img class="profile-pic" src="@user.UserPhoto" alt="Foto de Perfil" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
-            </div>
+    <div class="fd-page-wrap">
+        <div class="fd-container">
+            <div class="fd-row fd-row-3col">
 
-            <div class="mt-3">
-                @if (!isOwnProfile)
-                {
-                    @if (!isFollowing)
-                    {
-                        <button @onclick="FollowUser" style="background-color: #e0e0e0; color: black; border: 1px solid #ccc; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
-                            Seguir
-                        </button>
-                    }
-                    else
-                    {
-                        <button @onclick="UnfollowUser" style="background-color: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
-                            A seguir
-                        </button>
-                    }
-                }
-            </div>
+                <!-- LEFT: perfil -->
+                <aside class="fd-card">
+                    <div class="fd-card-body fd-text-center">
+                        @if (!string.IsNullOrEmpty(user.UserPhoto))
+                        {
+                            <img src="@user.UserPhoto" alt="Foto de Perfil"
+                                 style="width:120px;height:120px;border-radius:50%;object-fit:cover;margin:0 auto;display:block" />
+                        }
+                        else
+                        {
+                            <span class="fd-avatar fd-avatar--xl fd-avatar--a" style="display:block;margin:0 auto"></span>
+                        }
 
-            <p class="bio mt-3">Olá, sou @user.Username!</p>
-        </div>
-
-        <div class="main-section">
-            <h2 class="user-name">@user.Username</h2>
-            <div class="stats">
-                <div><strong>@recipes.Count()</strong><br />Receitas</div>
-                <div><strong>@string.Format("{0:0.0}", averageRating) ⭐</strong><br />Avaliação média</div>
-                <div><strong>@followerCount</strong><br />Seguidores</div>
-            </div>
-
-            <div class="publications">
-                <div class="publications-header">
-                    <h3>Publicações</h3>
-                    <a href="@($"/myrecipes/{user.Id_User}")">Ver Todas</a>
-                </div>
-
-                @foreach (var recipe in recipes.OrderByDescending(r => r.PublishedDate))
-                {
-                    <a href="@($"/recipepage/{recipe.Id_Recipe}")" class="post-link">
-                        <div class="post">
-                            <div class="post-header">
-                                @if (!string.IsNullOrEmpty(user.UserPhoto))
-                                {
-                                    <img src="@user.UserPhoto" class="post-profile" />
-                                }
-                                else
-                                {
-                                    <img src="/images/default-profile.jpg" class="post-profile" alt="Foto padrão" />
-                                }
-
-                                <div>
-                                    <strong>@user.Username</strong><br />
-                                    <small>@recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")</small>
-                                </div>
-                            </div>
-
-                            @if (recipe.Image != null)
+                        @if (!isOwnProfile)
+                        {
+                            @if (!isFollowing)
                             {
-                                <img class="post-image" src="data:image/png;base64,@Convert.ToBase64String(recipe.Image)" alt="@recipe.NameRecipe" />
+                                <button class="fd-btn fd-btn-outline fd-btn-block fd-mt-3" @onclick="FollowUser">
+                                    <i class="bi bi-person-plus"></i> Seguir
+                                </button>
                             }
                             else
                             {
-                                <img class="post-image" src="/images/default-recipe.jpg" alt="Imagem não disponível" />
+                                <button class="fd-btn fd-btn-success fd-btn-block fd-mt-3" @onclick="UnfollowUser">
+                                    <i class="bi bi-check2"></i> A seguir
+                                </button>
                             }
-
-                            <p class="post-title">@recipe.NameRecipe</p>
-                        </div>
-                    </a>
-                }
-
-            </div>
-        </div>
-
-        <div class="sidebar">
-            <div class="groups sidebar-section">
-                <h4>Grupos</h4>
-                <ul>
-                    @if (userGroups.Any())
-                    {
-                        @foreach (var group in userGroups)
-                        {
-                            <li class="sidebar-item">
-                                <a href="@($"/grouppage/{group.Id_Group}")" class="sidebar-link">
-                                    @group.Name
-                                </a>
-                            </li>
-
                         }
-                    }
-                    else
-                    {
-                        <li class="sidebar-item empty">Não pertence a nenhum grupo ainda.</li>
-                    }
-                </ul>
-            </div>
 
-            <div class="following sidebar-section">
-                <h4>Seguindo</h4>
-                <ul>
-                    @if (followedUsers.Any())
+                        <p class="fd-muted fd-small fd-mt-3">Olá, sou @user.Username!</p>
+                    </div>
+                </aside>
+
+                <!-- CENTER -->
+                <section>
+                    <h1 class="fd-page-title">@user.Username</h1>
+                    <p class="fd-muted">@@@user.Username</p>
+
+                    <div class="fd-profile-stats">
+                        <div class="fd-stat-box"><span class="num">@recipes.Count()</span><span class="lbl">Receitas</span></div>
+                        <div class="fd-stat-box"><span class="num">@string.Format("{0:0.0}", averageRating)</span><span class="lbl">Avaliação média</span></div>
+                        <div class="fd-stat-box"><span class="num">@followerCount</span><span class="lbl">Seguidores</span></div>
+                    </div>
+
+                    <div class="fd-flex-between fd-mb-3">
+                        <h3 style="font-family:var(--font-display);margin:0;font-size:20px">Publicações</h3>
+                        <a href="@($"/myrecipes/{user.Id_User}")" class="fd-small">Ver todas →</a>
+                    </div>
+
+                    @foreach (var recipe in recipes.OrderByDescending(r => r.PublishedDate))
                     {
-                        @foreach (var followedUser in followedUsers)
-                        {
-                            <li class="sidebar-item">
-                                <div class="sidebar-link" @onclick="() => NavigateToProfile(followedUser.Id_User)">
-                                    <img src="@followedUser.UserPhoto" alt="Foto" class="sidebar-avatar" />
-                                    <span>@followedUser.Username</span>
+                        <a href="@($"/recipepage/{recipe.Id_Recipe}")" style="text-decoration:none;color:inherit;display:block" class="fd-card fd-mb-3">
+                            <div class="fd-card-body">
+                                <div class="fd-flex fd-mb-2">
+                                    @if (!string.IsNullOrEmpty(user.UserPhoto))
+                                    {
+                                        <img src="@user.UserPhoto" class="fd-avatar fd-avatar--sm" style="object-fit:cover" />
+                                    }
+                                    else
+                                    {
+                                        <span class="fd-avatar fd-avatar--sm fd-avatar--a"></span>
+                                    }
+                                    <strong style="font-family:var(--font-display)">@user.Username</strong>
+                                    <span class="fd-muted fd-small">· @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")</span>
                                 </div>
-                            </li>
+
+                                @if (recipe.Image != null)
+                                {
+                                    <img src="data:image/png;base64,@Convert.ToBase64String(recipe.Image)" alt="@recipe.NameRecipe"
+                                         style="width:100%;height:220px;object-fit:cover;border-radius:var(--r-md);margin-bottom:10px" />
+                                }
+                                else
+                                {
+                                    <div class="fd-img fd-img--a" style="height:220px;border-radius:var(--r-md);margin-bottom:10px">
+                                        <svg viewBox="0 0 200 140" width="50%"><g fill="none" stroke="currentColor" stroke-width="4"><circle cx="100" cy="80" r="40" fill="#fff"/></g></svg>
+                                    </div>
+                                }
+
+                                <h4 style="font-family:var(--font-display);margin:0">@recipe.NameRecipe</h4>
+                            </div>
+                        </a>
+                    }
+                </section>
+
+                <!-- RIGHT -->
+                <aside class="fd-flex-col">
+                    <div class="fd-side-card">
+                        <h5>Grupos</h5>
+                        @if (userGroups.Any())
+                        {
+                            <ul class="fd-h-list">
+                                @foreach (var group in userGroups)
+                                {
+                                    <li>
+                                        <i class="bi bi-house" style="color:#FF6B35"></i>
+                                        <a href="@($"/grouppage/{group.Id_Group}")">@group.Name</a>
+                                    </li>
+                                }
+                            </ul>
                         }
-                    }
-                    else
-                    {
-                        <li class="sidebar-item empty">Não está a seguir ninguém ainda.</li>
-                    }
-                </ul>
+                        else
+                        {
+                            <p class="fd-muted fd-small" style="font-style:italic">Não pertence a nenhum grupo ainda.</p>
+                        }
+                    </div>
+
+                    <div class="fd-side-card">
+                        <h5>A seguir</h5>
+                        @if (followedUsers.Any())
+                        {
+                            <ul class="fd-h-list">
+                                @foreach (var followedUser in followedUsers)
+                                {
+                                    <li @onclick="() => NavigateToProfile(followedUser.Id_User)">
+                                        @if (!string.IsNullOrEmpty(followedUser.UserPhoto))
+                                        {
+                                            <img src="@followedUser.UserPhoto" class="fd-avatar fd-avatar--xs" style="object-fit:cover" />
+                                        }
+                                        else
+                                        {
+                                            <span class="fd-avatar fd-avatar--xs fd-avatar--b"></span>
+                                        }
+                                        <span>@followedUser.Username</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="fd-muted fd-small" style="font-style:italic">Não está a seguir ninguém ainda.</p>
+                        }
+                    </div>
+                </aside>
+
             </div>
         </div>
     </div>
 }
 
-<style>
-    .container {
-        display: grid;
-        grid-template-columns: 1fr 2fr 1fr;
-        gap: 2rem;
-        padding: 2rem;
-        font-family: sans-serif;
-    }
-
-    .profile-section {
-        text-align: center;
-    }
-
-    .profile-pic {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .follow-button {
-        margin-top: 1rem;
-        padding: 0.5rem 1rem;
-        border: 1px solid black;
-        background: white;
-        cursor: pointer;
-    }
-
-    .bio {
-        margin-top: 1rem;
-        font-size: 0.9rem;
-    }
-
-    .main-section {
-        background: #fff;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-
-    .user-name {
-        margin-bottom: 1rem;
-    }
-
-    .stats {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    .publications-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .post {
-        margin-top: 1rem;
-        background: #f9f9f9;
-        padding: 1rem;
-        border-radius: 8px;
-        transition: background 0.2s, box-shadow 0.2s;
-    }
-
-    .post-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        cursor: pointer;
-    }
-
-        .post-link:hover .post {
-            background: #f0f0f0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-    .post-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .post-profile {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-    }
-
-    .post-image {
-        width: 100%;
-        height: auto;
-        margin-top: 0.5rem;
-        border-radius: 8px;
-    }
-
-    .post-title {
-        margin-top: 0.5rem;
-        font-weight: bold;
-    }
-
-    .sidebar {
-        padding: 1rem;
-        background-color: #f9f9f9;
-        border-radius: 10px;
-    }
-
-    .sidebar-section {
-        margin-bottom: 2rem;
-    }
-
-        .sidebar-section h4 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            color: #333;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 0.4rem;
-        }
-
-    .sidebar ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        max-height: 250px;
-        overflow-y: auto;
-    }
-
-    .sidebar-item {
-        display: flex;
-        align-items: center;
-        padding: 0.4rem 0;
-        border-radius: 8px;
-        transition: background 0.3s;
-    }
-
-        .sidebar-item.empty {
-            color: #777;
-            font-style: italic;
-        }
-
-        .sidebar-item:hover {
-            background-color: #e0e0e0;
-        }
-
-    .sidebar-link {
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-    }
-
-        .sidebar-link:hover {
-            text-decoration: underline;
-        }
-
-    .sidebar-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        margin-right: 0.6rem;
-        object-fit: cover;
-        border: 2px solid #ccc;
-    }
-
-    .small-profile {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-    }
-</style>
 
 @code {
     [Parameter] public int? userId { get; set; }
