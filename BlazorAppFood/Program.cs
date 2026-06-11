@@ -25,10 +25,6 @@ internal class Program
         builder.Services.AddSignalR();
         builder.Services.AddSyncfusionBlazor();
 
-        // OTIMIZAÇÃO (P3 - junho 2026): MemoryCache para dados que
-        // raramente mudam (lista de receitas/tags/utilizadores na NavMenu).
-        builder.Services.AddMemoryCache();
-
        
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("FoodSocialMediaDB")));

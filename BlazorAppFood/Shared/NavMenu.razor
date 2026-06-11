@@ -1,7 +1,6 @@
 ﻿@using BlazorAppFood.Models
 @using BlazorAppFood.Data
 @using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.Extensions.Caching.Memory
 @using Syncfusion.Blazor.DropDowns
 @using System
 @using System.Threading
@@ -13,7 +12,6 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject INotificationRepository NotificationRepository
-@inject IMemoryCache Cache
 
 <!--Navbar-->
 <nav class="fd-nav">
@@ -200,49 +198,38 @@
 
         try
         {
-            // OTIMIZAÇÃO (P3 - junho 2026):
-            // 1) Resultados da busca em cache (2 min) — evita 3 queries por navegação.
-            // 2) Usar GetAllRecipesLite (sem byte[] Image) — payload muito menor.
-            searchResults = await Cache.GetOrCreateAsync("navmenu-search-data", async entry =>
+            var recipes = await RecipeRepository.GetAllRecipes();
+            foreach (var recipe in recipes)
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2);
-                var data = new List<SearchResult>();
-
-                var recipes = await RecipeRepository.GetAllRecipesLite();
-                foreach (var recipe in recipes)
+                searchResults.Add(new SearchResult
                 {
-                    data.Add(new SearchResult
-                    {
-                        Title = recipe.NameRecipe,
-                        Type = "Recipe",
-                        Route = $"/recipepage/{recipe.Id_Recipe}"
-                    });
-                }
+                    Title = recipe.NameRecipe,
+                    Type = "Recipe",
+                    Route = $"/recipepage/{recipe.Id_Recipe}"
+                });
+            }
 
-                var tags = await RecipeRepository.GetAllTagsAsync();
-                foreach (var tag in tags)
+            var tags = await RecipeRepository.GetAllTagsAsync();
+            foreach (var tag in tags)
+            {
+                searchResults.Add(new SearchResult
                 {
-                    data.Add(new SearchResult
-                    {
-                        Title = tag.NameTag,
-                        Type = "Tag",
-                        Route = $"/feed/{tag.IdTag}"
-                    });
-                }
+                    Title = tag.NameTag,
+                    Type = "Tag",
+                    Route = $"/feed/{tag.IdTag}"
+                });
+            }
 
-                var users = await UserRepository.GetAllUsers();
-                foreach (var item in users)
+            var users = await UserRepository.GetAllUsers();
+            foreach (var item in users)
+            {
+                searchResults.Add(new SearchResult
                 {
-                    data.Add(new SearchResult
-                    {
-                        Title = item.Username,
-                        Type = "User",
-                        Route = $"/ProfilePage/{item.Id_User}"
-                    });
-                }
-
-                return data;
-            }) ?? new List<SearchResult>();
+                    Title = item.Username,
+                    Type = "User",
+                    Route = $"/ProfilePage/{item.Id_User}"
+                });
+            }
 
             filteredResults = searchResults;
             StartNotificationPolling();

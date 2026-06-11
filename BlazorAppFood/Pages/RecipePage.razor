@@ -492,9 +492,15 @@
         {
             user = await UserRepository.GetUserInfo(emailUser);
             recipe = await RecipeRepository.GetRecipeInfo(Convert.ToInt32(IdRecipe));
-
-            // OTIMIZAÇÃO: LoadRecipeComments já traz Username + UserPhoto via JOIN
             recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
+
+            // Buscar info do utilizador por cada comentário
+            foreach (var comment in recipe.Comments)
+            {
+                var commentUser = await UserRepository.GetUserById(comment.IdUser);
+                comment.UserName = commentUser?.Username;
+                comment.UserPhoto = commentUser?.UserPhoto;
+            }
 
             isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
         }
@@ -514,6 +520,14 @@
         {
             await ChatRepository.CreateComment(recipe.Id_Recipe, user.Id_User, newMessage);
             recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
+
+            foreach (var comment in recipe.Comments)
+            {
+                var commentUser = await UserRepository.GetUserById(comment.IdUser);
+                comment.UserName = commentUser?.Username;
+                comment.UserPhoto = commentUser?.UserPhoto;
+            }
+
             newMessage = string.Empty;
         }
     }

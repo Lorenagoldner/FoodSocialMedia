@@ -234,32 +234,20 @@
     {
         if (user == null) return;
 
-        // OTIMIZAÇÃO: GetAllRecipesWithCounts traz FavoriteCount já incluído
-        // (subquery COUNT). Antes era 1 query GetAllRecipes + N queries
-        // GetFavoriteCount por receita. Agora é 1 query só.
         if (currentFeedMode == FeedMode.Global)
-            listPosts = (await RecipeRepository.GetAllRecipesWithCounts()).ToList();
+            listPosts = (await RecipeRepository.GetAllRecipes()).OrderByDescending(r => r.PublishedDate).ToList();
         else
-            listPosts = (await UserRepository.GetFollowingRecipes(user.Email))
-                .OrderByDescending(r => r.PublishedDate).ToList();
+            listPosts = (await UserRepository.GetFollowingRecipes(user.Email)).OrderByDescending(r => r.PublishedDate).ToList();
 
         await EnrichRecipes(listPosts);
     }
 
     private async Task EnrichRecipes(List<Recipe> recipes)
     {
-        if (recipes == null || recipes.Count == 0) return;
-
-        // OTIMIZAÇÃO: 1 query batch para todas as tags de todas as receitas
-        // em vez de 1 query por receita (eliminação do N+1).
-        var recipeIds = recipes.Select(r => r.Id_Recipe).ToList();
-        var tagsByRecipe = await RecipeRepository.GetTagsForRecipes(recipeIds);
-
         foreach (var recipe in recipes)
         {
-            recipe.Tags = tagsByRecipe.GetValueOrDefault(recipe.Id_Recipe, new List<Tag>());
-            // FavoriteCount já vem populado de GetAllRecipesWithCounts
-            // (caso o modo seja "Following", fica em 0 — aceitável para already-followed feed)
+            recipe.Tags = await RecipeRepository.GetTagsForRecipe(recipe.Id_Recipe);
+            recipe.FavoriteCount = await RecipeRepository.GetFavoriteCount(recipe.Id_Recipe);
         }
     }
 
