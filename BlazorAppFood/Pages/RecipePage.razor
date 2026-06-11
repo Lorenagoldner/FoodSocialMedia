@@ -10,20 +10,266 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject IChatRepository ChatRepository
 
+<style>
+    /* Reforço local para garantir layout do RecipePage independente de cache/CSS antigo */
+    .recipe-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: #fff;
+        border: 1px solid #ECECEC;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        margin-top: 24px;
+    }
+
+    @@media (max-width: 900px) {
+        .recipe-grid { grid-template-columns: 1fr; }
+    }
+
+    .recipe-grid > .left,
+    .recipe-grid > .right {
+        padding: 24px;
+    }
+
+    .recipe-grid > .left {
+        border-right: 1px solid #ECECEC;
+    }
+
+    .recipe-hero-img {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        display: block;
+    }
+
+    .recipe-avatar-md {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px #ECECEC;
+        display: inline-block;
+    }
+
+    .recipe-avatar-xs {
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 1.5px solid #fff;
+        flex-shrink: 0;
+    }
+
+    .recipe-avatar-fallback {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FF6B35, #FFC857);
+        display: inline-block;
+        border: 2px solid #fff;
+    }
+
+    .recipe-avatar-fallback-xs {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #FF6B35, #FFC857);
+        display: inline-block;
+        border: 1.5px solid #fff;
+        flex-shrink: 0;
+    }
+
+    .recipe-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 12px;
+    }
+
+    .recipe-title-row h2 {
+        margin: 0;
+        font-size: 26px;
+        font-family: Georgia, serif;
+    }
+
+    .recipe-bookmark-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        padding: 4px 8px;
+    }
+
+    .recipe-section-h {
+        font-family: Georgia, serif;
+        font-size: 15px;
+        margin: 18px 0 8px;
+        font-weight: 700;
+    }
+
+    .recipe-ingredients {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .recipe-ingredients li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px dashed #ECECEC;
+        font-size: 14px;
+    }
+
+    .recipe-ingredients li::before {
+        content: "•";
+        color: #FF6B35;
+        font-weight: 700;
+    }
+
+    .recipe-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        color: #6B6B6B;
+        font-size: 13.5px;
+        margin: 8px 0;
+    }
+
+    .recipe-meta-row strong {
+        color: #2C2C2C;
+        font-weight: 600;
+    }
+
+    .recipe-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .recipe-badge-success { background: #E5F4E9; color: #2D7A40; }
+    .recipe-badge-warning { background: #FFF1C7; color: #8A6B14; }
+    .recipe-badge-danger { background: #FBEAEC; color: #8A1F2A; }
+
+    .recipe-tag-pill {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #DCE9F3;
+        color: #1F4D7A;
+        border-radius: 999px;
+        font-size: 12px;
+        text-decoration: none;
+    }
+    .recipe-tag-pill:hover { background: #CBDEEF; text-decoration: none; }
+
+    .recipe-author-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .recipe-side-card {
+        background: #fff;
+        border: 1px solid #ECECEC;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 18px;
+    }
+
+    .recipe-chat {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 14px;
+        max-height: 360px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .recipe-bubble {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .recipe-bubble--me { flex-direction: row-reverse; }
+
+    .recipe-bubble-body {
+        background: #F4F4F4;
+        border-radius: 14px;
+        padding: 10px 14px;
+        max-width: 80%;
+        font-size: 13.5px;
+    }
+    .recipe-bubble--me .recipe-bubble-body { background: #E3F4E8; }
+    .recipe-bubble--author .recipe-bubble-body { background: #DCE9F3; }
+
+    .recipe-bubble-body strong {
+        display: block;
+        font-family: Georgia, serif;
+        font-size: 13px;
+        margin-bottom: 2px;
+    }
+    .recipe-bubble-body time {
+        display: block;
+        font-size: 11px;
+        color: #6B6B6B;
+        margin-top: 4px;
+    }
+
+    .recipe-chat-input {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #ECECEC;
+    }
+    .recipe-chat-input input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid #ECECEC;
+        border-radius: 8px;
+    }
+    .recipe-chat-input button {
+        background: #FF6B35;
+        color: #fff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .recipe-muted { color: #6B6B6B; }
+    .recipe-small { font-size: 12px; }
+    .recipe-author-name {
+        font-family: Georgia, serif;
+        font-weight: 700;
+        color: #2C2C2C;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
 <AuthorizeView>
     <Authorized>
 
-        <main class="page">
-            <div class="container">
-                <div class="fd-recipe-detail">
+        <main style="padding: 24px 0 80px">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px">
+                <div class="recipe-grid">
 
                     <!-- ============ LEFT PANEL ============ -->
-                    <div class="fd-recipe-detail__left">
-
-                        <div class="flex-between mb-2">
-                            <h2 style="margin:0">@recipe.NameRecipe</h2>
-                            <button class="bookmark-btn" @onclick="AddFavorite" aria-label="Favoritar"
-                                    style="background:none;border:none;cursor:pointer;font-size:24px">
+                    <div class="left">
+                        <div class="recipe-title-row">
+                            <h2>@recipe.NameRecipe</h2>
+                            <button class="recipe-bookmark-btn" @onclick="AddFavorite" aria-label="Favoritar">
                                 @if (isFavorite)
                                 {
                                     <i class="bi bi-bookmark-fill" style="color:#FF6B35"></i>
@@ -38,24 +284,19 @@
                         @if (recipe.Image != null)
                         {
                             var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
-                            <div class="fd-recipe-hero" style="overflow:hidden">
-                                <img src="@img" alt="@recipe.NameRecipe"
-                                     style="width:100%; height:100%; object-fit:cover; border-radius:inherit" />
-                            </div>
+                            <img src="@img" alt="@recipe.NameRecipe" class="recipe-hero-img" />
                         }
                         else
                         {
-                            <div class="fd-recipe-hero fd-img fd-img--a">
-                                <i class="bi bi-egg-fried" style="font-size:48px; opacity:.4"></i>
+                            <div class="recipe-hero-img" style="background: linear-gradient(135deg, #FFE7D2, #FFC857); display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-egg-fried" style="font-size:48px; opacity:.4; color:#fff"></i>
                             </div>
                         }
 
                         @if (recipe.Ingredients?.Count > 0)
                         {
-                            <h5 style="font-family:var(--font-display); font-size:15px; margin:18px 0 8px">
-                                Ingredientes
-                            </h5>
-                            <ul class="fd-ingredients">
+                            <h5 class="recipe-section-h">Ingredientes</h5>
+                            <ul class="recipe-ingredients">
                                 @foreach (var ing in recipe.Ingredients)
                                 {
                                     <li>@ing.Name</li>
@@ -63,19 +304,17 @@
                             </ul>
                         }
 
-                        <h5 style="font-family:var(--font-display); font-size:15px; margin:18px 0 8px">
-                            Preparação
-                        </h5>
-                        <p class="muted" style="font-size:14.5px; white-space:pre-wrap">@recipe.Preparation</p>
+                        <h5 class="recipe-section-h">Preparação</h5>
+                        <p class="recipe-muted" style="font-size:14.5px; white-space:pre-wrap">@recipe.Preparation</p>
 
-                        <div class="fd-meta-row">
+                        <div class="recipe-meta-row">
                             @if (recipe.Servings > 0)
                             {
                                 <span><strong>Rendimento:</strong> @recipe.Servings porções</span>
                             }
                             <span>
                                 <strong>Dificuldade:</strong>
-                                <span class="badge @GetDifficultyBadge(recipe.Difficulty)">
+                                <span class="recipe-badge @GetDifficultyBadge(recipe.Difficulty)">
                                     @(recipe.Difficulty switch
                                     {
                                         DifficultyLevel.Facil => "Fácil",
@@ -87,61 +326,59 @@
                             </span>
                         </div>
 
-                        <div class="fd-meta-row">
+                        <div class="recipe-meta-row">
                             <span><strong>Tempo de preparação:</strong> @TimeFormatter.FormatMinutes(recipe.Prep_Time)</span>
                             <span><strong>Tempo de cozinhar:</strong> @TimeFormatter.FormatMinutes(recipe.Cook_Time)</span>
                         </div>
 
                         @if (recipe.Tags?.Count > 0)
                         {
-                            <div class="flex" style="flex-wrap:wrap; gap:6px; margin-top:14px">
+                            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:14px">
                                 @foreach (var tag in recipe.Tags)
                                 {
-                                    <a href="/feed/@tag.IdTag" class="tag-pill">#@tag.NameTag</a>
+                                    <a href="/feed/@tag.IdTag" class="recipe-tag-pill">#@tag.NameTag</a>
                                 }
                             </div>
                         }
                     </div>
 
                     <!-- ============ RIGHT PANEL ============ -->
-                    <div class="fd-recipe-detail__right">
+                    <div class="right">
 
-                        <div class="flex mb-3" style="gap:12px; align-items:center">
+                        <div class="recipe-author-row">
                             @if (!string.IsNullOrEmpty(recipe.UserPhoto))
                             {
-                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))"
-                                   style="cursor:pointer">
-                                    <img src="@recipe.UserPhoto" class="fd-avatar fd-avatar--md"
-                                         style="object-fit:cover" />
-                                </a>
+                                <img src="@recipe.UserPhoto" class="recipe-avatar-md"
+                                     style="cursor:pointer"
+                                     @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))" />
                             }
                             else
                             {
-                                <span class="fd-avatar fd-avatar--md fd-avatar--a"></span>
+                                <span class="recipe-avatar-fallback"
+                                      style="cursor:pointer"
+                                      @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))"></span>
                             }
                             <div>
-                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))"
-                                   style="font-family:var(--font-display); font-weight:700; color:var(--ink); cursor:pointer; text-decoration:none">
+                                <a class="recipe-author-name"
+                                   @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))">
                                     @recipe.Username
                                 </a>
-                                <div class="muted small">
+                                <div class="recipe-muted recipe-small">
                                     @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")
                                 </div>
                             </div>
                         </div>
 
-                        <div class="fd-side-card" style="margin-bottom:18px">
-                            <p class="small muted" style="margin:0 0 6px">
+                        <div class="recipe-side-card">
+                            <p class="recipe-small recipe-muted" style="margin:0 0 6px">
                                 Experimentaste esta receita? Avalia →
                             </p>
                             <Rating idRecipe="@recipe.Id_Recipe" idUser="@user.Id_User"></Rating>
                         </div>
 
-                        <h5 style="font-family:var(--font-display); font-size:15px; margin:0 0 8px">
-                            Comentários
-                        </h5>
+                        <h5 class="recipe-section-h" style="margin:0 0 8px">Comentários</h5>
 
-                        <div class="fd-chat">
+                        <div class="recipe-chat">
                             @if (recipe.Comments != null && recipe.Comments.Any())
                             {
                                 @foreach (var comment in recipe.Comments)
@@ -149,40 +386,39 @@
                                     bool isUserComment = comment.IdUser == user.Id_User;
                                     bool isAuthorComment = comment.IdUser == recipe.Id_User;
                                     string bubbleClass = isUserComment
-                                        ? "fd-bubble fd-bubble--me"
+                                        ? "recipe-bubble recipe-bubble--me"
                                         : isAuthorComment
-                                            ? "fd-bubble fd-bubble--author"
-                                            : "fd-bubble";
+                                            ? "recipe-bubble recipe-bubble--author"
+                                            : "recipe-bubble";
 
                                     <div class="@bubbleClass">
-                                        @if (!isUserComment)
+                                        @if (isUserComment)
                                         {
-                                            @if (!string.IsNullOrEmpty(comment.UserPhoto))
+                                            @if (!string.IsNullOrEmpty(user.UserPhoto))
                                             {
-                                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))"
-                                                   style="cursor:pointer">
-                                                    <img src="@comment.UserPhoto" class="fd-avatar fd-avatar--xs"
-                                                         style="object-fit:cover" />
-                                                </a>
+                                                <img src="@user.UserPhoto" class="recipe-avatar-xs" />
                                             }
                                             else
                                             {
-                                                <span class="fd-avatar fd-avatar--xs fd-avatar--a"></span>
+                                                <span class="recipe-avatar-fallback-xs"></span>
                                             }
                                         }
                                         else
                                         {
-                                            @if (!string.IsNullOrEmpty(user.UserPhoto))
+                                            @if (!string.IsNullOrEmpty(comment.UserPhoto))
                                             {
-                                                <img src="@user.UserPhoto" class="fd-avatar fd-avatar--xs"
-                                                     style="object-fit:cover" />
+                                                <img src="@comment.UserPhoto" class="recipe-avatar-xs"
+                                                     style="cursor:pointer"
+                                                     @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))" />
                                             }
                                             else
                                             {
-                                                <span class="fd-avatar fd-avatar--xs fd-avatar--c"></span>
+                                                <span class="recipe-avatar-fallback-xs"
+                                                      style="cursor:pointer"
+                                                      @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))"></span>
                                             }
                                         }
-                                        <div class="fd-bubble__body">
+                                        <div class="recipe-bubble-body">
                                             <strong>
                                                 @if (isUserComment)
                                                 {
@@ -201,18 +437,17 @@
                             }
                             else
                             {
-                                <p class="muted small" style="text-align:center; padding:20px 0">
+                                <p class="recipe-muted recipe-small" style="text-align:center; padding:20px 0">
                                     Ainda sem comentários. Sê o primeiro!
                                 </p>
                             }
                         </div>
 
-                        <div class="fd-chat-input">
-                            <input class="form-control" type="text"
+                        <div class="recipe-chat-input">
+                            <input type="text"
                                    @onkeydown="@Enter" @bind="newMessage"
                                    placeholder="Escreve um comentário..." />
-                            <button class="btn btn-primary" type="button" @onclick="@CreateComment"
-                                    aria-label="Enviar">
+                            <button type="button" @onclick="@CreateComment" aria-label="Enviar">
                                 <i class="bi bi-send-fill"></i>
                             </button>
                         </div>
@@ -224,9 +459,9 @@
 
     </Authorized>
     <NotAuthorized>
-        <div class="page" style="text-align:center; padding:60px">
+        <div style="text-align:center; padding:60px">
             <h3>Sessão terminada</h3>
-            <p class="muted">Não tens permissão para ver esta página.</p>
+            <p class="recipe-muted">Não tens permissão para ver esta página.</p>
         </div>
     </NotAuthorized>
 </AuthorizeView>
@@ -243,10 +478,10 @@
 
     private string GetDifficultyBadge(DifficultyLevel level) => level switch
     {
-        DifficultyLevel.Facil => "badge-success",
-        DifficultyLevel.Medio => "badge-warning",
-        DifficultyLevel.Dificil => "badge-danger",
-        _ => "badge-success"
+        DifficultyLevel.Facil => "recipe-badge-success",
+        DifficultyLevel.Medio => "recipe-badge-warning",
+        DifficultyLevel.Dificil => "recipe-badge-danger",
+        _ => "recipe-badge-success"
     };
 
     protected override async Task OnParametersSetAsync()
@@ -258,9 +493,7 @@
             user = await UserRepository.GetUserInfo(emailUser);
             recipe = await RecipeRepository.GetRecipeInfo(Convert.ToInt32(IdRecipe));
 
-            // OTIMIZAÇÃO: LoadRecipeComments já faz JOIN com Users e traz
-            // Username + UserPhoto numa só query. Removemos o foreach + GetUserById
-            // que era N+1 (1 query por comentário).
+            // OTIMIZAÇÃO: LoadRecipeComments já traz Username + UserPhoto via JOIN
             recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
             isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
@@ -280,11 +513,7 @@
         if (!string.IsNullOrWhiteSpace(newMessage))
         {
             await ChatRepository.CreateComment(recipe.Id_Recipe, user.Id_User, newMessage);
-
-            // OTIMIZAÇÃO: LoadRecipeComments já popula UserName + UserPhoto.
-            // Removemos o foreach + GetUserById (eliminação do N+1).
             recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
-
             newMessage = string.Empty;
         }
     }
