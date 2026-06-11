@@ -230,6 +230,10 @@ namespace BlazorAppFood.Repositories
                 recipe.Image = await conn.ExecuteScalarAsync<byte[]>(
                    "SELECT Image FROM Recipe WHERE Id_Recipe = @Id",
                    new { Id = id });
+
+                recipe.Id_User = await conn.ExecuteScalarAsync<int>(
+                    "SELECT Id_User FROM Recipe WHERE Id_Recipe = @Id",
+                   new { Id = id });
             }
 
             return recipe;
