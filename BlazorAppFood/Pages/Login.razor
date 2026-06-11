@@ -32,6 +32,12 @@
                 <div class="fd-form-group">
                     <label class="fd-form-label">Password</label>
                     <InputText class="fd-form-control" type="password" @bind-Value="user.Password" placeholder="••••••••" />
+                    <div style="text-align:right;margin-top:6px">
+                        <a href="javascript:void(0)" @onclick="GoToForgotPassword"
+                           style="font-size:12px;color:var(--orange);text-decoration:none;font-weight:500">
+                            Esqueceste-te da password?
+                        </a>
+                    </div>
                 </div>
 
                 <button type="submit" class="fd-btn fd-btn-primary fd-btn-block" style="margin-top:8px;padding:12px">
@@ -71,6 +77,12 @@
     {
         CloseModal();
         await OnOpenRegister.InvokeAsync();
+    }
+
+    private void GoToForgotPassword()
+    {
+        CloseModal();
+        NavigationManager.NavigateTo("/forgot-password");
     }
 
     public async Task LoginUser()

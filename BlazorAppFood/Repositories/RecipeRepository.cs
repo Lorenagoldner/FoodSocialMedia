@@ -673,6 +673,91 @@ namespace BlazorAppFood.Repositories
             }
         }
 
+        // ===================================================================
+        //  OTIMIZAÇÕES DE PERFORMANCE (P3 - junho 2026)
+        //  Resolvem o problema de lentidão (~2 min) ao usar BD remota.
+        //  Causa raiz: latência rede * N+1 queries * payload pesado (Image).
+        // ===================================================================
+
+        /// <summary>
+        /// Versão "lite" sem o byte[] Image. Usar em listagens/busca onde só
+        /// precisamos do nome, autor, etc. — não da imagem grande.
+        /// </summary>
+        public async Task<List<Recipe>> GetAllRecipesLite()
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                // Note: SEM r.Image. Reduz ~500KB por receita transferida.
+                string query = @"
+                    SELECT r.Id_Recipe, r.Id_User, r.NameRecipe,
+                           r.Prep_Time, r.Cook_Time,
+                           r.AverageRating, r.PublishedDate,
+                           r.Servings, r.Difficulty,
+                           u.Username, u.UserPhoto
+                    FROM Recipe r
+                    INNER JOIN Users u ON r.Id_User = u.Id_User";
+
+                var recipes = await conn.QueryAsync<Recipe>(query);
+                return recipes.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Versão otimizada para o Feed: traz FavoriteCount numa subquery.
+        /// Inclui Image (precisa para os cards), mas dispensa o foreach
+        /// que chamava GetFavoriteCount uma vez por receita (N+1).
+        /// </summary>
+        public async Task<List<Recipe>> GetAllRecipesWithCounts()
+        {
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = @"
+                    SELECT r.*, u.Username, u.UserPhoto,
+                           (SELECT COUNT(*) FROM Favorites WHERE IdRecipe = r.Id_Recipe) AS FavoriteCount
+                    FROM Recipe r
+                    INNER JOIN Users u ON r.Id_User = u.Id_User
+                    ORDER BY r.PublishedDate DESC";
+
+                var recipes = await conn.QueryAsync<Recipe>(query);
+                return recipes.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Carrega as tags de MÚLTIPLAS receitas numa só query.
+        /// Substitui o foreach que chamava GetTagsForRecipe uma vez por receita (N+1).
+        /// Devolve dicionário Id_Recipe → List<Tag> para lookup rápido.
+        /// </summary>
+        public async Task<Dictionary<int, List<Tag>>> GetTagsForRecipes(List<int> recipeIds)
+        {
+            // Caso defensivo: lista vazia, evita query desnecessária
+            if (recipeIds == null || recipeIds.Count == 0)
+                return new Dictionary<int, List<Tag>>();
+
+            using (var conn = new SqlConnection(_configuration._value))
+            {
+                string query = @"
+                    SELECT rt.IdRecipe AS RecipeId, t.IdTag, t.NameTag, t.IdCategory
+                    FROM Recipes_Tags rt
+                    JOIN Tags t ON rt.IdTag = t.IdTag
+                    WHERE rt.IdRecipe IN @RecipeIds";
+
+                var rows = await conn.QueryAsync<(int RecipeId, int IdTag, string NameTag, int IdCategory)>(
+                    query, new { RecipeIds = recipeIds });
+
+                return rows
+                    .GroupBy(r => r.RecipeId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(x => new Tag
+                        {
+                            IdTag = x.IdTag,
+                            NameTag = x.NameTag,
+                            IdCategory = x.IdCategory
+                        }).ToList());
+            }
+        }
+
         public async Task<List<Recipe>> GetMostFavoritedRecipes()
         {
             using (var conn = new SqlConnection(_configuration._value))

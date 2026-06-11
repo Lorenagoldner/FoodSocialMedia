@@ -1,28 +1,44 @@
-﻿@page "/welcome"
+@page "/welcome"
 @using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService SessionStorage
 @inject IUserRepository UserRepository
 
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="card text-center shadow p-5" style="max-width: 400px;">
-        <h2 class="fw-bold">Foodie</h2>
-        <p class="text-muted">Let's complete your profile</p>
+@layout EmptyLayout
 
-        <hr />
+<div class="fd-empty-layout">
+    <header class="fd-empty-header">
+        <a href="/" class="fd-brand"><span class="fd-brand__dot"></span> Foodie</a>
+    </header>
 
-        <img src="img/illustration-index.jpg" class="img-fluid mb-4" />
+    <main class="fd-empty-content">
+        <div class="fd-onb-card">
+            <div aria-hidden="true" style="margin-bottom:8px">
+                <svg viewBox="0 0 200 140" width="160">
+                    <circle cx="100" cy="70" r="60" fill="#FFE7D2" />
+                    <circle cx="100" cy="70" r="42" fill="#fff" />
+                    <path d="M70 70 q30 -25 60 0" stroke="#FF6B35" stroke-width="4" fill="none" stroke-linecap="round" />
+                    <circle cx="85" cy="62" r="4" fill="#FF6B35" />
+                    <circle cx="115" cy="62" r="4" fill="#FF6B35" />
+                </svg>
+            </div>
+            <h1>Foodie</h1>
+            <p class="sub">Vamos completar o teu perfil.</p>
 
-        <button class="btn btn-dark rounded-pill px-4 mb-3" @onclick="Continue">LET'S GO</button>
+            <button class="btn btn-primary btn-lg" style="border-radius:999px; padding:14px 36px" @onclick="Continue">
+                LET'S GO
+            </button>
 
-        <div class="mb-2">
-            <span class="dot active"></span>
-            <span class="dot"></span>
+            <div class="fd-stepdots">
+                <span class="fd-stepdot on"></span>
+                <span class="fd-stepdot"></span>
+            </div>
+            <a href="/feed" class="fd-skip">Saltar estes passos →</a>
         </div>
+    </main>
 
-        <a href="/feed" class="text-muted small">Skip these steps</a>
-    </div>
+    <footer class="fd-empty-footer">© 2026 Foodie</footer>
 </div>
 
 @code {

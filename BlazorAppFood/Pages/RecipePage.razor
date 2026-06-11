@@ -1,4 +1,4 @@
-﻿@page "/recipepage/{IdRecipe}"
+@page "/recipepage/{IdRecipe}"
 @using BlazorAppFood.ComponentsFolder
 @using BlazorAppFood.Models
 @using BlazorAppFood.Repositories
@@ -10,220 +10,224 @@
 @inject Blazored.SessionStorage.ISessionStorageService sessionStorage
 @inject IChatRepository ChatRepository
 
-<style>
-    .bg-lightgreen {
-        background-color: #d4edda !important; /* Verde claro */
-    }
-
-    .bg-lightblue {
-        background-color: #d1ecf1 !important; /* Azul claro */
-    }
-
-    .bg-light {
-        background-color: #f8f9fa !important; /* Cinza claro */
-    }
-</style>
 <AuthorizeView>
     <Authorized>
 
-        <div class="container">
-            <div class="card card-recipe">
-                <div class="card-recipe-header row d-flex align-items-center">
-                    <div class="col-10">
-                        <h3>@recipe.NameRecipe</h3>
-                    </div>
-                    <div class="col">
-                        @* <button color="red" Primary="false" @onclick="AddFavorite"><i class="bi bi-bookmark"></i></button> *@
-                        <button @onclick="AddFavorite" class="btn btn-link">
-                            @if (isFavorite)
-                            {
-                                <i class="bi bi-bookmark-fill"></i> @* Filled Bookmark if favorited *@
-                            }
-                            else
-                            {
-                                <i class="bi bi-bookmark"></i> @* Outline Bookmark if not favorited *@
-                            }
-                        </button>
-                    </div>
-                </div>
+        <main class="page">
+            <div class="container">
+                <div class="fd-recipe-detail">
 
-                <div class="row">
-                    <div class="card-recipe-panel-left col-6">
-                        @if (recipe.Image != null)
-                        {
-                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
-                            <img src="@img" style="width: 100%; height: 200px; object-fit: cover;" />
-                        }
-                        else
-                        {
-                            <img src="img/images.svg" alt="">
-                        }
+                    <!-- ============ LEFT PANEL ============ -->
+                    <div class="fd-recipe-detail__left">
 
-                        <br />
-                        @if (recipe.Ingredients?.Count > 0)
-                        {
-                            <div class="mt-3">
-                                <h5>Ingredientes:</h5>
-                                <ul>
-                                    @foreach (var ing in recipe.Ingredients)
-                                    {
-                                        <li>@ing.Name</li>
-                                    }
-                                </ul>
-                            </div>
-                        }
-                        <p><b>Preparação:</b> @recipe.Preparation</p>
-                        @if (recipe.Servings > 0)
-                        {
-                            <p><b>Rendimento:</b> @recipe.Servings porções</p>
-                        }
-                        <p><b>Dificuldade:</b>
-                            @(recipe.Difficulty switch {
-                                DifficultyLevel.Facil => "Fácil",
-                                DifficultyLevel.Medio => "Médio",
-                                DifficultyLevel.Dificil => "Difícil",
-                                _ => "Fácil"
-                            })
-                        </p>
-                        <p><b>Tempo de Preparação:</b> @TimeFormatter.FormatMinutes(recipe.Prep_Time)</p>
-                        <p><b>Tempo de Cozinhar:</b> @TimeFormatter.FormatMinutes(recipe.Cook_Time)</p>
-                        @if (recipe.Tags?.Count > 0)
-                        {
-                            <div class="mt-3">
-                                <h5>Tags:</h5>
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach (var tag in recipe.Tags)
-                                    {
-                                        <a class="badge bg-primary rounded-pill px-3 py-2 text-decoration-none text-white"
-                                           href="/feed/@tag.IdTag">
-                                            @tag.NameTag
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="card-recipe-panel-right col-6">
-                        <div class="card-recipe-user-info row d-flex align-items-center">
-                            <div class="col-2">
-                                @if (recipe.UserPhoto != null)
+                        <div class="flex-between mb-2">
+                            <h2 style="margin:0">@recipe.NameRecipe</h2>
+                            <button class="bookmark-btn" @onclick="AddFavorite" aria-label="Favoritar"
+                                    style="background:none;border:none;cursor:pointer;font-size:24px">
+                                @if (isFavorite)
                                 {
-                                    <img src="@recipe.UserPhoto" alt="" class="rounded-circle" width="55" height="55" style="cursor: pointer;" @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
+                                    <i class="bi bi-bookmark-fill" style="color:#FF6B35"></i>
                                 }
                                 else
                                 {
-                                    <img src="img/avatar2.jpg" alt="" class="rounded-circle" width="55" height="55">
+                                    <i class="bi bi-bookmark" style="color:#FF6B35"></i>
                                 }
-                            </div>
-                            <div class="col" style="cursor: pointer; color: black;" 
-                                    onmouseover="this.style.color='blue';" 
-                                    onmouseout="this.style.color='black';" 
-                                    @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))>
-                                <h6>@recipe.Username</h6>
-                                <small class="text-muted">
-                                    @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")
-                                </small>
-                            </div>
+                            </button>
                         </div>
 
-                        <div class="card-recipe-user-rating row">
-                            <div class="col-4">
-                                <h6>Experimentou esta receita?</h6>
-                                <strong>Avalie -></strong>
+                        @if (recipe.Image != null)
+                        {
+                            var img = $"data:image/jpeg;base64,{Convert.ToBase64String(recipe.Image)}";
+                            <div class="fd-recipe-hero" style="overflow:hidden">
+                                <img src="@img" alt="@recipe.NameRecipe"
+                                     style="width:100%; height:100%; object-fit:cover; border-radius:inherit" />
                             </div>
-                            <div class="col d-flex justify-content-center">
-                                <Rating idRecipe="@recipe.Id_Recipe" idUser="@user.Id_User"></Rating>
+                        }
+                        else
+                        {
+                            <div class="fd-recipe-hero fd-img fd-img--a">
+                                <i class="bi bi-egg-fried" style="font-size:48px; opacity:.4"></i>
                             </div>
-                        </div>
+                        }
 
-                        <div class="recipe-card-comments">
-                            <div class="comments-area">
-                                @if (recipe.Comments != null)
+                        @if (recipe.Ingredients?.Count > 0)
+                        {
+                            <h5 style="font-family:var(--font-display); font-size:15px; margin:18px 0 8px">
+                                Ingredientes
+                            </h5>
+                            <ul class="fd-ingredients">
+                                @foreach (var ing in recipe.Ingredients)
                                 {
-                                    @foreach (var comment in recipe.Comments)
-                                    {
-                                        bool isUserComment = comment.IdUser == user.Id_User;
-                                        bool isAuthorComment = comment.IdUser == recipe.Id_User;
-
-                                        string alignmentClass = isUserComment ? "text-end ms-auto bg-lightgreen"
-                                        : isAuthorComment ? "text-start me-auto bg-lightblue"
-                                        : "text-start me-auto bg-light";
-
-                                        <div class="row mb-2">
-                                            <div class="col-12">
-                                                <div class="d-flex flex-column p-2 rounded shadow-sm @alignmentClass" style="max-width: 75%;">
-                                                    <div class="d-flex align-items-center mb-1">
-                                                        @if (!string.IsNullOrEmpty(comment.UserPhoto))
-                                                        {
-                                                            <img src="@comment.UserPhoto" alt=""
-                                                                 class="rounded-circle me-2" width="35" height="35"
-                                                                 style="cursor: pointer;"
-                                                                 @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))>
-                                                        }
-                                                        else
-                                                        {
-                                                            <img src="img/avatar2.jpg" alt=""
-                                                                 class="rounded-circle me-2" width="35" height="35">
-                                                        }
-                                                        <strong style="cursor: pointer; color: black;"
-                                                                onmouseover="this.style.color='blue';"
-                                                                onmouseout="this.style.color='black';"
-                                                                @onclick=@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))>
-                                                            @comment.UserName
-                                                        </strong>
-                                                    </div>
-                                                    <div>
-                                                        <span>@comment.Message</span><br />
-                                                        <small class="text-muted">@comment.PublishedDate.ToString("dd/MM/yyyy HH:mm")</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                }
-
-
-
-                                    
-                                
-                            </div>
-
-                            <div class="row">
-                                <div class="col">
-                                    <div class="mb-3">
-                                        @*<textarea @onkeydown="@Enter" @bind="newMessage" class="form-control" id="textAreaPreparation" rows="1" placeholder="New comment..."></textarea>*@
-                                        <input type="text" @onkeydown="@Enter" @bind="newMessage" class="form-control" id="inputComment" placeholder="Novo comentário..." />
-                                    </div>
-                                </div>
-                                <div class="col-2 d-flex align-items-center">
-                                    <span @onclick="@CreateComment" style="cursor: pointer;"><i class="bi bi-chat-dots"></i></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        @*<div class="row">
-                            <form @onsubmit=Enter>
-                                <label for="todo">What to do?</label>
-                                <input id="todo" placeholder="Something todo" @bind="newTodo" />
-                                <button>Add todo</button>
-                            </form>
-                            <ul>
-                                @foreach (var item in todos)
-                                {
-                                    <li @key=item>@item.Title</li>
+                                    <li>@ing.Name</li>
                                 }
                             </ul>
-                        </div>*@
+                        }
+
+                        <h5 style="font-family:var(--font-display); font-size:15px; margin:18px 0 8px">
+                            Preparação
+                        </h5>
+                        <p class="muted" style="font-size:14.5px; white-space:pre-wrap">@recipe.Preparation</p>
+
+                        <div class="fd-meta-row">
+                            @if (recipe.Servings > 0)
+                            {
+                                <span><strong>Rendimento:</strong> @recipe.Servings porções</span>
+                            }
+                            <span>
+                                <strong>Dificuldade:</strong>
+                                <span class="badge @GetDifficultyBadge(recipe.Difficulty)">
+                                    @(recipe.Difficulty switch
+                                    {
+                                        DifficultyLevel.Facil => "Fácil",
+                                        DifficultyLevel.Medio => "Médio",
+                                        DifficultyLevel.Dificil => "Difícil",
+                                        _ => "Fácil"
+                                    })
+                                </span>
+                            </span>
+                        </div>
+
+                        <div class="fd-meta-row">
+                            <span><strong>Tempo de preparação:</strong> @TimeFormatter.FormatMinutes(recipe.Prep_Time)</span>
+                            <span><strong>Tempo de cozinhar:</strong> @TimeFormatter.FormatMinutes(recipe.Cook_Time)</span>
+                        </div>
+
+                        @if (recipe.Tags?.Count > 0)
+                        {
+                            <div class="flex" style="flex-wrap:wrap; gap:6px; margin-top:14px">
+                                @foreach (var tag in recipe.Tags)
+                                {
+                                    <a href="/feed/@tag.IdTag" class="tag-pill">#@tag.NameTag</a>
+                                }
+                            </div>
+                        }
                     </div>
+
+                    <!-- ============ RIGHT PANEL ============ -->
+                    <div class="fd-recipe-detail__right">
+
+                        <div class="flex mb-3" style="gap:12px; align-items:center">
+                            @if (!string.IsNullOrEmpty(recipe.UserPhoto))
+                            {
+                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))"
+                                   style="cursor:pointer">
+                                    <img src="@recipe.UserPhoto" class="fd-avatar fd-avatar--md"
+                                         style="object-fit:cover" />
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="fd-avatar fd-avatar--md fd-avatar--a"></span>
+                            }
+                            <div>
+                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + recipe.Id_User))"
+                                   style="font-family:var(--font-display); font-weight:700; color:var(--ink); cursor:pointer; text-decoration:none">
+                                    @recipe.Username
+                                </a>
+                                <div class="muted small">
+                                    @recipe.PublishedDate.ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="fd-side-card" style="margin-bottom:18px">
+                            <p class="small muted" style="margin:0 0 6px">
+                                Experimentaste esta receita? Avalia →
+                            </p>
+                            <Rating idRecipe="@recipe.Id_Recipe" idUser="@user.Id_User"></Rating>
+                        </div>
+
+                        <h5 style="font-family:var(--font-display); font-size:15px; margin:0 0 8px">
+                            Comentários
+                        </h5>
+
+                        <div class="fd-chat">
+                            @if (recipe.Comments != null && recipe.Comments.Any())
+                            {
+                                @foreach (var comment in recipe.Comments)
+                                {
+                                    bool isUserComment = comment.IdUser == user.Id_User;
+                                    bool isAuthorComment = comment.IdUser == recipe.Id_User;
+                                    string bubbleClass = isUserComment
+                                        ? "fd-bubble fd-bubble--me"
+                                        : isAuthorComment
+                                            ? "fd-bubble fd-bubble--author"
+                                            : "fd-bubble";
+
+                                    <div class="@bubbleClass">
+                                        @if (!isUserComment)
+                                        {
+                                            @if (!string.IsNullOrEmpty(comment.UserPhoto))
+                                            {
+                                                <a @onclick="@(() => NavigationManager.NavigateTo("/profilepage/" + comment.IdUser))"
+                                                   style="cursor:pointer">
+                                                    <img src="@comment.UserPhoto" class="fd-avatar fd-avatar--xs"
+                                                         style="object-fit:cover" />
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="fd-avatar fd-avatar--xs fd-avatar--a"></span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @if (!string.IsNullOrEmpty(user.UserPhoto))
+                                            {
+                                                <img src="@user.UserPhoto" class="fd-avatar fd-avatar--xs"
+                                                     style="object-fit:cover" />
+                                            }
+                                            else
+                                            {
+                                                <span class="fd-avatar fd-avatar--xs fd-avatar--c"></span>
+                                            }
+                                        }
+                                        <div class="fd-bubble__body">
+                                            <strong>
+                                                @if (isUserComment)
+                                                {
+                                                    @("Eu")
+                                                }
+                                                else
+                                                {
+                                                    @comment.UserName
+                                                }
+                                            </strong>
+                                            @comment.Message
+                                            <time>@comment.PublishedDate.ToString("dd/MM/yyyy HH:mm")</time>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p class="muted small" style="text-align:center; padding:20px 0">
+                                    Ainda sem comentários. Sê o primeiro!
+                                </p>
+                            }
+                        </div>
+
+                        <div class="fd-chat-input">
+                            <input class="form-control" type="text"
+                                   @onkeydown="@Enter" @bind="newMessage"
+                                   placeholder="Escreve um comentário..." />
+                            <button class="btn btn-primary" type="button" @onclick="@CreateComment"
+                                    aria-label="Enviar">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        </div>
+        </main>
 
     </Authorized>
     <NotAuthorized>
-        <h3>You are logged out</h3>
-        <p>You are not authorized to view this page.</p>
+        <div class="page" style="text-align:center; padding:60px">
+            <h3>Sessão terminada</h3>
+            <p class="muted">Não tens permissão para ver esta página.</p>
+        </div>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -237,6 +241,14 @@
 
     bool isFavorite = false;
 
+    private string GetDifficultyBadge(DifficultyLevel level) => level switch
+    {
+        DifficultyLevel.Facil => "badge-success",
+        DifficultyLevel.Medio => "badge-warning",
+        DifficultyLevel.Dificil => "badge-danger",
+        _ => "badge-success"
+    };
+
     protected override async Task OnParametersSetAsync()
     {
         string emailUser = await sessionStorage.GetItemAsync<string>("userEmail");
@@ -245,15 +257,11 @@
         {
             user = await UserRepository.GetUserInfo(emailUser);
             recipe = await RecipeRepository.GetRecipeInfo(Convert.ToInt32(IdRecipe));
-            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
-            // Buscar info do utilizador por cada comentário
-            foreach (var comment in recipe.Comments)
-            {
-                var commentUser = await UserRepository.GetUserById(comment.IdUser);
-                comment.UserName = commentUser?.Username;
-                comment.UserPhoto = commentUser?.UserPhoto;
-            }
+            // OTIMIZAÇÃO: LoadRecipeComments já faz JOIN com Users e traz
+            // Username + UserPhoto numa só query. Removemos o foreach + GetUserById
+            // que era N+1 (1 query por comentário).
+            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
             isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
         }
@@ -272,15 +280,10 @@
         if (!string.IsNullOrWhiteSpace(newMessage))
         {
             await ChatRepository.CreateComment(recipe.Id_Recipe, user.Id_User, newMessage);
-            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
-            // Atualizar dados dos utilizadores novamente
-            foreach (var comment in recipe.Comments)
-            {
-                var commentUser = await UserRepository.GetUserById(comment.IdUser);
-                comment.UserName = commentUser?.Username;
-                comment.UserPhoto = commentUser?.UserPhoto;
-            }
+            // OTIMIZAÇÃO: LoadRecipeComments já popula UserName + UserPhoto.
+            // Removemos o foreach + GetUserById (eliminação do N+1).
+            recipe.Comments = await ChatRepository.LoadRecipeComments(recipe.Id_Recipe);
 
             newMessage = string.Empty;
         }
@@ -289,9 +292,7 @@
     public async Task AddFavorite()
     {
         await RecipeRepository.AddFavorite(recipe.Id_Recipe, user.Id_User);
-
         isFavorite = await RecipeRepository.CheckFavorite(recipe.Id_Recipe, user.Id_User);
-
         StateHasChanged();
     }
 }

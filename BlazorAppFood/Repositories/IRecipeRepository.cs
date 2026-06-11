@@ -29,5 +29,13 @@ namespace BlazorAppFood.Repositories
         Task<List<Tag>> GetTagsForRecipe(int recipeId);
         Task<List<Recipe>> GetMostFavoritedRecipes();
         Task<int?> GetUserRating(int idRecipe, int idUser);
+
+        // ===== Otimizações de performance (P3 - junho 2026) =====
+        // Lite: traz só campos para listagens/busca, SEM o byte[] da Image
+        Task<List<Recipe>> GetAllRecipesLite();
+        // Versão otimizada do Feed: traz FavoriteCount na própria query
+        Task<List<Recipe>> GetAllRecipesWithCounts();
+        // Batch: traz tags de várias receitas numa só query (evita N+1)
+        Task<Dictionary<int, List<Tag>>> GetTagsForRecipes(List<int> recipeIds);
     }
 }

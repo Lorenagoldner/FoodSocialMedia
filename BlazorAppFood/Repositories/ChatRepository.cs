@@ -85,18 +85,21 @@ namespace BlazorAppFood.Repositories
         public async Task<List<Comment>> LoadRecipeComments(int idRecipe)
         {
             using (var conn = new SqlConnection(_configuration._value))
-
-
             {
-                string sQuery = @"Select Comments.*, Users.UserPhoto 
-                                FROM Comments Inner JOIN Users ON Comments.IdUser = Users.Id_User 
-                                WHERE Comments.IdRecipe = @idRecipe ";
-                return (await conn.QueryAsync<Comment>(sQuery,
-                    new
-                    { IdRecipe = idRecipe }
-                    )).ToList();
-            }
+                // OTIMIZAÇÃO (P3 - junho 2026):
+                // Adicionado Users.Username AS UserName ao SELECT.
+                // Antes a RecipePage fazia foreach + GetUserById por cada comment (N+1).
+                // Agora vem tudo numa só query JOIN.
+                string sQuery = @"SELECT Comments.*,
+                                         Users.UserPhoto,
+                                         Users.Username AS UserName
+                                  FROM Comments
+                                  INNER JOIN Users ON Comments.IdUser = Users.Id_User
+                                  WHERE Comments.IdRecipe = @idRecipe
+                                  ORDER BY Comments.PublishedDate ASC";
 
+                return (await conn.QueryAsync<Comment>(sQuery, new { IdRecipe = idRecipe })).ToList();
+            }
         }
     }
 }
