@@ -1,28 +1,174 @@
-﻿@page "/welcome"
+@page "/welcome"
 @using BlazorAppFood.Repositories
 @using Blazored.SessionStorage
 @inject NavigationManager NavigationManager
 @inject ISessionStorageService SessionStorage
 @inject IUserRepository UserRepository
 
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="card text-center shadow p-5" style="max-width: 400px;">
-        <h2 class="fw-bold">Foodie</h2>
-        <p class="text-muted">Let's complete your profile</p>
+@layout EmptyLayout
 
-        <hr />
+<style>
+    /* CSS auto-contido SÓ para esta página — classes welcome-* não usadas em mais lado nenhum */
 
-        <img src="img/illustration-index.jpg" class="img-fluid mb-4" />
+    .welcome-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background:
+            radial-gradient(900px 500px at 90% -10%, #FFEFC2, transparent 60%),
+            radial-gradient(900px 500px at -10% 100%, #FFE7D2, transparent 60%),
+            #FAFAF7;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
 
-        <button class="btn btn-dark rounded-pill px-4 mb-3" @onclick="Continue">LET'S GO</button>
+    .welcome-header {
+        padding: 20px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        <div class="mb-2">
-            <span class="dot active"></span>
-            <span class="dot"></span>
+    .welcome-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #1C1916;
+        font-family: "Poppins", system-ui, sans-serif;
+        font-weight: 700;
+        font-size: 22px;
+        letter-spacing: -.01em;
+    }
+
+    .welcome-brand-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #FF6B35;
+        display: inline-block;
+    }
+
+    .welcome-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .welcome-card {
+        background: #fff;
+        border: 1px solid #ECE6DB;
+        border-radius: 22px;
+        box-shadow: 0 4px 10px rgba(28,24,22,.06), 0 18px 36px rgba(28,24,22,.08);
+        padding: 40px;
+        width: 100%;
+        max-width: 520px;
+        text-align: center;
+    }
+
+    .welcome-card h1 {
+        font-family: "Poppins", system-ui, sans-serif;
+        font-weight: 700;
+        font-size: 30px;
+        margin: 0 0 6px;
+        color: #1C1916;
+    }
+
+    .welcome-card .sub {
+        color: #76706A;
+        margin: 0 0 22px;
+    }
+
+    .welcome-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Poppins", system-ui, sans-serif;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 14px 36px;
+        border-radius: 999px;
+        border: 1px solid #FF6B35;
+        background: #FF6B35;
+        color: #fff;
+        cursor: pointer;
+        box-shadow: 0 6px 14px rgba(255,107,53,.25);
+        transition: background .2s ease;
+    }
+
+    .welcome-btn:hover {
+        background: #E55524;
+        border-color: #E55524;
+    }
+
+    .welcome-stepdots {
+        display: inline-flex;
+        gap: 8px;
+        margin: 20px 0 6px;
+    }
+
+    .welcome-stepdot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #DDD5C5;
+    }
+
+    .welcome-stepdot.on {
+        background: #FF6B35;
+    }
+
+    .welcome-skip {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #76706A;
+        text-decoration: none;
+    }
+
+    .welcome-skip:hover { text-decoration: underline; }
+
+    .welcome-footer {
+        text-align: center;
+        padding: 18px 20px;
+        color: #76706A;
+        font-size: 13px;
+    }
+</style>
+
+<div class="welcome-layout">
+    <header class="welcome-header">
+        <a href="/" class="welcome-brand">
+            <span class="welcome-brand-dot"></span> Foodie
+        </a>
+    </header>
+
+    <main class="welcome-content">
+        <div class="welcome-card">
+            <div aria-hidden="true" style="margin-bottom:8px">
+                <svg viewBox="0 0 200 140" width="160">
+                    <circle cx="100" cy="70" r="60" fill="#FFE7D2" />
+                    <circle cx="100" cy="70" r="42" fill="#fff" />
+                    <path d="M70 70 q30 -25 60 0" stroke="#FF6B35" stroke-width="4" fill="none" stroke-linecap="round" />
+                    <circle cx="85" cy="62" r="4" fill="#FF6B35" />
+                    <circle cx="115" cy="62" r="4" fill="#FF6B35" />
+                </svg>
+            </div>
+            <h1>Foodie</h1>
+            <p class="sub">Vamos completar o teu perfil.</p>
+
+            <button class="welcome-btn" @onclick="Continue">LET'S GO</button>
+
+            <div class="welcome-stepdots">
+                <span class="welcome-stepdot on"></span>
+                <span class="welcome-stepdot"></span>
+            </div>
+            <a href="/feed" class="welcome-skip">Saltar estes passos →</a>
         </div>
+    </main>
 
-        <a href="/feed" class="text-muted small">Skip these steps</a>
-    </div>
+    <footer class="welcome-footer">© 2026 Foodie</footer>
 </div>
 
 @code {
